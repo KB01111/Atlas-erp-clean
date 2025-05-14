@@ -1,0 +1,67 @@
+# Temporal dynamic configuration for development
+# This file is referenced in the docker-compose.yml configuration
+
+frontend.enableClientVersionCheck:
+  - value: true
+    constraints: {}
+
+history.defaultActivityRetryPolicy:
+  - value:
+      initialIntervalInSeconds: 1
+      maximumIntervalInSeconds: 100
+      maximumAttempts: 3
+      backoffCoefficient: 2
+    constraints: {}
+
+history.defaultWorkflowRetryPolicy:
+  - value:
+      initialIntervalInSeconds: 1
+      maximumIntervalInSeconds: 100
+      maximumAttempts: 3
+      backoffCoefficient: 2
+    constraints: {}
+
+system.enableReadFromES:
+  - value: false
+    constraints: {}
+
+limit.maxIDLength:
+  - value: 255
+    constraints: {}
+
+# SQLite specific settings
+system.sql.pluginName:
+  - value: sqlite
+    constraints: {}
+
+system.sql.databaseName:
+  - value: temporal
+    constraints: {}
+
+system.sql.connectAddr:
+  - value: /etc/temporal/sqlite
+    constraints: {}
+
+system.sql.connectProtocol:
+  - value: ""
+    constraints: {}
+
+system.sql.user:
+  - value: ""
+    constraints: {}
+
+system.sql.password:
+  - value: ""
+    constraints: {}
+
+system.sql.maxConns:
+  - value: 20
+    constraints: {}
+
+system.sql.maxIdleConns:
+  - value: 20
+    constraints: {}
+
+system.sql.maxConnLifetime:
+  - value: 1h
+    constraints: {}

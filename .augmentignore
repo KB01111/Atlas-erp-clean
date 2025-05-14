@@ -1,0 +1,38 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Test coverage
+coverage/
+
+# Cache and intermediate files
+.cache/
+.nyc_output/
+
+# Logs
+*.log
+logs/
+
+# macOS metadata
+.DS_Store
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Platform-specific build dirs
+cudnn_windows/
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE/editor configs
+.vscode/
+.idea/
+
+# Re-include a specific module if needed
+!node_modules/some-lib/

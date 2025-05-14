@@ -1,0 +1,37 @@
+/* Custom styles for CopilotKit components */
+
+/* Fix for hydration mismatch in poweredBy text */
+.copilotKitPopup .poweredBy {
+  visibility: visible !important;
+  display: block !important;
+  position: static !important;
+  text-align: center !important;
+  font-size: 12px !important;
+  padding: 3px 0 !important;
+  color: rgb(214, 214, 214) !important;
+}
+
+/* Additional styling for CopilotKit components */
+.copilotKitButton {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.copilotKitButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.copilotKitWindow {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom colors to match Atlas-ERP theme */
+:root {
+  --copilot-kit-primary-color: var(--primary);
+  --copilot-kit-contrast-color: var(--primary-foreground);
+  --copilot-kit-secondary-contrast-color: var(--secondary-foreground);
+  --copilot-kit-background-color: var(--background);
+  --copilot-kit-muted-color: var(--muted-foreground);
+  --copilot-kit-separator-color: var(--border);
+  --copilot-kit-scrollbar-color: var(--muted);
+}

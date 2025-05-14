@@ -1,0 +1,24 @@
+# These owners will be the default owners for everything in the repo.
+* @KB01111
+
+# Docker configuration files
+Dockerfile* @KB01111
+docker-compose* @KB01111
+.dockerignore @KB01111
+
+# GitHub Actions workflows
+.github/workflows/* @KB01111
+
+# Core application code
+/src/* @KB01111
+
+# Configuration files
+*.config.js @KB01111
+*.config.ts @KB01111
+next.config.js @KB01111
+tsconfig.json @KB01111
+
+# Environment and deployment files
+.env.example @KB01111
+.env.production.example @KB01111
+scripts/* @KB01111

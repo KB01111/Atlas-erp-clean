@@ -1,0 +1,161 @@
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: atlas-erp-app
+    ports:
+      - "3000:3000"
+    environment:
+      - SURREAL_URL=http://surrealdb:8000
+      - SURREAL_NS=${SURREAL_NS:-atlas}
+      - SURREAL_DB=${SURREAL_DB:-erp}
+      - SURREAL_USER=${SURREAL_USER:-root}
+      - SURREAL_PASS=${SURREAL_PASS:-root}
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - MINIO_BUCKET=${MINIO_BUCKET:-atlas-erp}
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_NAMESPACE=${TEMPORAL_NAMESPACE:-default}
+      - ARANGO_URL=http://arangodb:8529
+      - ARANGO_DB=${ARANGO_DB:-atlas_knowledge}
+      - ARANGO_USER=${ARANGO_USER:-root}
+      - ARANGO_PASS=${ARANGO_PASS:-atlas}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_API_KEY=${LLM_API_KEY:-your-api-key-here}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o}
+      - COPILOTKIT_API_KEY=${COPILOTKIT_API_KEY:-ck_pub_4e87be87ce5fcbc54805a9597fd74013}
+      - NODE_ENV=development
+    depends_on:
+      - surrealdb
+      - arangodb
+      - minio
+      - temporal
+    restart: unless-stopped
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # SurrealDB - Database
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: atlas-erp-surrealdb
+    command: start --user ${SURREAL_USER:-root} --pass ${SURREAL_PASS:-root} --bind 0.0.0.0:8000 file:/data/surreal.db
+    ports:
+      - "8001:8000"
+    volumes:
+      - surreal-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # ArangoDB - Knowledge Graph Database
+  arangodb:
+    image: arangodb:3.11
+    container_name: atlas-erp-arangodb
+    environment:
+      - ARANGO_ROOT_PASSWORD=${ARANGO_ROOT_PASSWORD:-atlas}
+    ports:
+      - "8529:8529"
+    volumes:
+      - arango-data:/var/lib/arangodb3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8529/_api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # MinIO - Object Storage
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: atlas-erp-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Create MinIO bucket
+  minio-setup:
+    image: minio/mc:latest
+    container_name: atlas-erp-minio-setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ACCESS_KEY:-minioadmin} ${MINIO_SECRET_KEY:-minioadmin};
+      /usr/bin/mc mb myminio/${MINIO_BUCKET:-atlas-erp} || true;
+      /usr/bin/mc policy set download myminio/${MINIO_BUCKET:-atlas-erp};
+      exit 0;
+      "
+
+  # Temporal - Workflow Engine
+  temporal:
+    image: temporalio/auto-setup:1.22.4
+    container_name: atlas-erp-temporal
+    ports:
+      - "7233:7233"
+      - "8000:8000" # Prometheus metrics endpoint
+    environment:
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml
+      - DB=sqlite3
+      - DB_PORT=
+      - SQLITE3_DATABASEDIR=/etc/temporal/sqlite
+      - PROMETHEUS_ENDPOINT=0.0.0.0:8000
+    volumes:
+      - temporal-data:/etc/temporal/sqlite
+      - ./config/dynamicconfig:/etc/temporal/config/dynamicconfig
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7233/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Temporal Web UI
+  temporal-ui:
+    image: temporalio/ui:2.25.0
+    container_name: atlas-erp-temporal-ui
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8088:8080"
+    depends_on:
+      - temporal
+    restart: unless-stopped
+
+volumes:
+  minio-data:
+  temporal-data:
+  surreal-data:
+  arango-data:
