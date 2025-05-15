@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { CheckCircle, XCircle, AlertCircle, RefreshCw, AlertTriangle, RotateCcw } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { CheckCircle, XCircle, AlertCircle, RefreshCw, AlertTriangle, RotateCcw, Wifi, WifiOff } from "lucide-react";
 import { ShineBorder } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { MagicCard } from "@/components/magicui/magic-card";
 import { Ripple } from "@/components/magicui/ripple";
 import { useRateLimit } from "@/context/RateLimitContext";
+import { initWebSocketClient, EventType, StatusUpdate } from "@/lib/socket-io-client";
 
 interface ServiceStatus {
   name: string;
@@ -30,7 +31,9 @@ export default function EnhancedStatusPanelV2() {
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(60000); // 1 minute
+  const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
   const { rateLimitOperation } = useRateLimit();
+  const socketRef = useRef<any>(null);
 
   // Real functions to check service status
   const checkSurrealDBWithDetails = async (): Promise<{
@@ -150,12 +153,106 @@ export default function EnhancedStatusPanelV2() {
   };
 
   const checkLLMAPIWithDetails = async () => {
-    // This would be a real check in production
-    return {
-      status: 'operational',
-      message: 'LLM API is operational',
-      responseTime: 120,
-    };
+    const startTime = performance.now();
+    try {
+      // Load LLM settings from local storage
+      const llmSettings = typeof window !== 'undefined'
+        ? JSON.parse(localStorage.getItem('llm-settings') || '{}')
+        : {};
+
+      // If no API key is configured, return a warning status
+      if (!llmSettings.apiKey) {
+        return {
+          status: 'degraded',
+          message: 'LLM API key not configured',
+          responseTime: 0,
+        };
+      }
+
+      // If provider requires API base but none is configured
+      const requiresApiBase = ["ollama", "local", "azure"].includes((llmSettings.provider || '').toLowerCase());
+      if (requiresApiBase && !llmSettings.apiBase) {
+        return {
+          status: 'degraded',
+          message: `${llmSettings.provider} requires an API base URL`,
+          responseTime: 0,
+        };
+      }
+
+      // Test the LLM connection with a simple request
+      const response = await fetch('/api/settings/llm', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          provider: llmSettings.provider || 'openai',
+          model: llmSettings.model || 'gpt-4o',
+          apiKey: llmSettings.apiKey,
+          apiBase: llmSettings.apiBase,
+        }),
+      });
+
+      const endTime = performance.now();
+      const responseTime = Math.round(endTime - startTime);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          return {
+            status: 'operational',
+            message: `Connected to ${data.model || llmSettings.provider}`,
+            responseTime: data.responseTime || responseTime,
+          };
+        } else {
+          return {
+            status: 'degraded',
+            message: data.error || data.message || 'LLM API connection issue',
+            responseTime,
+          };
+        }
+      } else {
+        // Handle specific HTTP status codes
+        if (response.status === 401 || response.status === 403) {
+          return {
+            status: 'degraded',
+            message: 'Invalid API key or authentication error',
+            responseTime,
+          };
+        } else if (response.status === 429) {
+          return {
+            status: 'degraded',
+            message: 'Rate limit exceeded for LLM API',
+            responseTime,
+          };
+        } else if (response.status === 408 || response.status === 504) {
+          return {
+            status: 'degraded',
+            message: 'LLM API request timed out',
+            responseTime,
+          };
+        } else if (response.status >= 500) {
+          return {
+            status: 'down',
+            message: `LLM API server error: ${response.statusText}`,
+            responseTime,
+          };
+        } else {
+          return {
+            status: 'degraded',
+            message: `LLM API issue: ${response.statusText}`,
+            responseTime,
+          };
+        }
+      }
+    } catch (error) {
+      const endTime = performance.now();
+      return {
+        status: 'down',
+        message: `Error connecting to LLM API: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        responseTime: Math.round(endTime - startTime),
+      };
+    }
   };
 
   const checkTemporalCloudWithDetails = async () => {
@@ -314,6 +411,51 @@ export default function EnhancedStatusPanelV2() {
     })();
   }, [checkServiceStatus, rateLimitOperation]);
 
+  // Initialize WebSocket connection
+  useEffect(() => {
+    // Initialize WebSocket client
+    socketRef.current = initWebSocketClient();
+
+    // Set up event listeners
+    socketRef.current.on('connect', () => {
+      console.log('Connected to WebSocket server');
+      setIsWebSocketConnected(true);
+    });
+
+    socketRef.current.on('disconnect', () => {
+      console.log('Disconnected from WebSocket server');
+      setIsWebSocketConnected(false);
+    });
+
+    // Listen for status updates
+    socketRef.current.on(EventType.STATUS_UPDATE, (update: StatusUpdate) => {
+      console.log('Received status update:', update);
+
+      // Update the corresponding service
+      setServices(prevServices => {
+        return prevServices.map(service => {
+          if (service.name === update.service) {
+            return {
+              ...service,
+              status: update.status,
+              details: update.message,
+              responseTime: update.responseTime,
+              lastChecked: new Date(),
+            };
+          }
+          return service;
+        });
+      });
+    });
+
+    // Clean up on component unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, []);
+
   // Auto-refresh services based on the interval
   useEffect(() => {
     if (!autoRefresh) return;
@@ -321,12 +463,15 @@ export default function EnhancedStatusPanelV2() {
     // Initial check
     checkServiceStatus();
 
+    // If WebSocket is connected, we don't need to poll as frequently
+    const effectiveInterval = isWebSocketConnected ? refreshInterval * 2 : refreshInterval;
+
     // Set up interval for auto-refresh
-    const interval = setInterval(checkServiceStatus, refreshInterval);
+    const interval = setInterval(checkServiceStatus, effectiveInterval);
 
     // Clean up interval on component unmount
     return () => clearInterval(interval);
-  }, [autoRefresh, refreshInterval, checkServiceStatus]);
+  }, [autoRefresh, refreshInterval, checkServiceStatus, isWebSocketConnected]);
 
   // Calculate overall status
   const overallStatus = services.every(s => s.status === 'operational')
@@ -491,6 +636,22 @@ export default function EnhancedStatusPanelV2() {
                   <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                   <span className="ml-2 text-xs text-card-foreground/70">Auto</span>
                 </label>
+              </div>
+              <div
+                className="flex items-center gap-1 text-xs text-muted-foreground"
+                title={isWebSocketConnected ? "Real-time updates enabled" : "Real-time updates disabled"}
+              >
+                {isWebSocketConnected ? (
+                  <>
+                    <Wifi size={14} className="text-green-500" />
+                    <span className="sr-only md:not-sr-only">Real-time</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff size={14} className="text-gray-400" />
+                    <span className="sr-only md:not-sr-only">Polling</span>
+                  </>
+                )}
               </div>
               <button
                 onClick={handleRefresh}

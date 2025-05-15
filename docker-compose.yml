@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
     container_name: atlas-erp-app
     ports:
       - "3000:3000"
@@ -26,15 +27,24 @@ services:
       - ARANGO_USER=${ARANGO_USER:-root}
       - ARANGO_PASS=${ARANGO_PASS:-atlas}
       - LLM_PROVIDER=${LLM_PROVIDER:-openai}
-      - LLM_API_KEY=${LLM_API_KEY:-your-api-key-here}
+      - LLM_API_KEY=${LLM_API_KEY:-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}
       - LLM_MODEL=${LLM_MODEL:-gpt-4o}
       - COPILOTKIT_API_KEY=${COPILOTKIT_API_KEY:-ck_pub_4e87be87ce5fcbc54805a9597fd74013}
+      - PIPEDREAM_API_KEY=${PIPEDREAM_API_KEY:-}
+      - PIPEDREAM_API_URL=${PIPEDREAM_API_URL:-https://api.pipedream.com/v1}
+      - PIPEDREAM_ORG_ID=${PIPEDREAM_ORG_ID:-}
+      - PIPEDREAM_WORKSPACE_ID=${PIPEDREAM_WORKSPACE_ID:-}
+      - NANGO_API_URL=${NANGO_API_URL:-https://api.nango.dev}
+      - NANGO_SECRET_KEY=${NANGO_SECRET_KEY:-}
+      - NANGO_PUBLIC_KEY=${NANGO_PUBLIC_KEY:-}
       - NODE_ENV=development
+      - DOCKER_COMPOSE=true
     depends_on:
       - surrealdb
       - arangodb
       - minio
       - temporal
+      - postgres
     restart: unless-stopped
     volumes:
       - ./src:/app/src
@@ -45,12 +55,14 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    networks:
+      - atlas-network
 
   # SurrealDB - Database
   surrealdb:
     image: surrealdb/surrealdb:latest
     container_name: atlas-erp-surrealdb
-    command: start --user ${SURREAL_USER:-root} --pass ${SURREAL_PASS:-root} --bind 0.0.0.0:8000 file:/data/surreal.db
+    command: start --user ${SURREAL_USER:-root} --pass ${SURREAL_PASS:-root} --bind 0.0.0.0:8000 --log debug memory
     ports:
       - "8001:8000"
     volumes:
@@ -59,9 +71,11 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 15s
     restart: unless-stopped
+    networks:
+      - atlas-network
 
   # ArangoDB - Knowledge Graph Database
   arangodb:
@@ -80,6 +94,8 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
+    networks:
+      - atlas-network
 
   # MinIO - Object Storage
   minio:
@@ -101,6 +117,8 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
+    networks:
+      - atlas-network
 
   # Create MinIO bucket
   minio-setup:
@@ -116,30 +134,58 @@ services:
       /usr/bin/mc policy set download myminio/${MINIO_BUCKET:-atlas-erp};
       exit 0;
       "
+    networks:
+      - atlas-network
+
+  # PostgreSQL for Temporal
+  postgres:
+    image: postgres:13
+    container_name: atlas-erp-postgres
+    environment:
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=temporal
+      - POSTGRES_DB=temporal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - atlas-network
 
   # Temporal - Workflow Engine
   temporal:
     image: temporalio/auto-setup:1.22.4
     container_name: atlas-erp-temporal
+    depends_on:
+      - postgres
     ports:
       - "7233:7233"
       - "8000:8000" # Prometheus metrics endpoint
     environment:
       - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml
-      - DB=sqlite3
-      - DB_PORT=
-      - SQLITE3_DATABASEDIR=/etc/temporal/sqlite
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgres
       - PROMETHEUS_ENDPOINT=0.0.0.0:8000
     volumes:
-      - temporal-data:/etc/temporal/sqlite
       - ./config/dynamicconfig:/etc/temporal/config/dynamicconfig
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7233/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     restart: unless-stopped
+    networks:
+      - atlas-network
 
   # Temporal Web UI
   temporal-ui:
@@ -152,10 +198,18 @@ services:
       - "8088:8080"
     depends_on:
       - temporal
+      - postgres
     restart: unless-stopped
+    networks:
+      - atlas-network
 
 volumes:
   minio-data:
   temporal-data:
   surreal-data:
   arango-data:
+  postgres-data:
+
+networks:
+  atlas-network:
+    driver: bridge

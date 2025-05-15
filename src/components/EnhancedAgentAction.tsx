@@ -49,17 +49,16 @@ export default function EnhancedAgentAction({
     }
   }, [name]);
 
-  // Register the agent action with CopilotKit inside useEffect
-  useEffect(() => {
-    useCopilotAction({
-      name: `run_${name.toLowerCase().replace(/\s+/g, "_")}`,
-      description: `Run the ${name} agent to ${description}`,
-      parameters: [],
-      handler: async () => {
-        return await handleRunAgent();
-      },
-    });
-  }, [name, description, handleRunAgent]);
+  // Register the agent action with CopilotKit at the top level of the component
+  // This is the correct way to use hooks - at the top level, not inside useEffect
+  useCopilotAction({
+    name: `run_${name.toLowerCase().replace(/\s+/g, "_")}`,
+    description: `Run the ${name} agent to ${description}`,
+    parameters: [],
+    handler: async () => {
+      return await handleRunAgent();
+    },
+  });
 
   return (
     <div className="relative group transition-all duration-300 hover:scale-[1.02]">

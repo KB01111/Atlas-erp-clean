@@ -46,6 +46,16 @@ const EnhancedAgentAction = dynamic(
   }
 );
 
+const RealTimeMetricsComponent = dynamic(
+  () => import('@/components/dashboard/RealTimeMetrics').then(mod => ({
+    default: memo(mod.default)
+  })),
+  {
+    ssr: false,
+    loading: () => <div className="h-96 w-full bg-card animate-pulse rounded-xl"></div>
+  }
+);
+
 // Sample data for the charts (kept for reference)
 const revenueData = [
   { month: "Jan", amount: 4000 },
@@ -118,6 +128,18 @@ const Dashboard = memo(function Dashboard() {
         <div className="col-span-3">
           <EnhancedWelcomeSection />
         </div>
+      </div>
+
+      {/* Real-Time Metrics */}
+      <div className="mt-8 mb-4">
+        <AnimatedGradientText
+          text="Real-Time Metrics"
+          className="text-2xl font-semibold"
+          gradient="linear-gradient(to right, #3b82f6, #8b5cf6, #3b82f6)"
+        />
+      </div>
+      <div className="mb-8">
+        <RealTimeMetricsComponent />
       </div>
 
       {/* Agent Actions */}

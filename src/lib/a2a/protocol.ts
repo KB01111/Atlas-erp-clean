@@ -1,10 +1,44 @@
 import { v4 as uuidv4 } from 'uuid';
-import { 
-  Message, 
-  MessagePart, 
-  MessageSchema, 
-  MessagePartSchema 
+import {
+  Message,
+  MessagePart,
+  MessageSchema,
+  MessagePartSchema
 } from '../validation/schemas';
+
+/**
+ * A2A Message Type enum
+ */
+export enum A2AMessageType {
+  SYSTEM = 'system',
+  USER_MESSAGE = 'user_message',
+  ASSISTANT_MESSAGE = 'assistant_message',
+  ERROR = 'error',
+  FUNCTION_CALL = 'function_call',
+  FUNCTION_RESPONSE = 'function_response',
+}
+
+/**
+ * A2A Message Role enum
+ */
+export enum A2AMessageRole {
+  SYSTEM = 'system',
+  USER = 'user',
+  ASSISTANT = 'assistant',
+  FUNCTION = 'function',
+}
+
+/**
+ * A2A Message interface
+ */
+export interface A2AMessage {
+  id?: string;
+  type: A2AMessageType;
+  role: A2AMessageRole;
+  content: string;
+  name?: string;
+  timestamp?: string;
+}
 
 /**
  * Run status enum
@@ -64,17 +98,38 @@ export interface RunEvent {
  * @param contentType The content type (default: text/plain)
  * @returns A new message
  */
-export function createMessage(content: string, contentType: string = 'text/plain'): Message {
+export function createTextMessage(content: string, contentType: string = 'text/plain'): Message {
   const messagePart: MessagePart = {
     contentType,
     content,
   };
-  
+
   // Validate the message part
   const validatedPart = MessagePartSchema.parse(messagePart);
-  
+
   return {
     parts: [validatedPart],
+  };
+}
+
+/**
+ * Create a new A2A message
+ * @param params The message parameters
+ * @returns A new A2A message
+ */
+export function createMessage(params: {
+  type: A2AMessageType;
+  role: A2AMessageRole;
+  content: string;
+  name?: string;
+}): A2AMessage {
+  return {
+    id: uuidv4(),
+    type: params.type,
+    role: params.role,
+    content: params.content,
+    name: params.name,
+    timestamp: new Date().toISOString(),
   };
 }
 
@@ -96,8 +151,8 @@ export function createMessageWithParts(parts: MessagePart[]): Message {
  * @returns A new artifact message part
  */
 export function createArtifact(
-  name: string, 
-  content: string, 
+  name: string,
+  content: string,
   contentType: string = 'application/json'
 ): MessagePart {
   const artifact: MessagePart = {
@@ -105,7 +160,7 @@ export function createArtifact(
     contentType,
     content,
   };
-  
+
   // Validate the artifact
   return MessagePartSchema.parse(artifact);
 }
@@ -183,11 +238,17 @@ export function createRunEvent(
  * @param message The message to convert
  * @returns The string representation of the message
  */
-export function messageToString(message: Message): string {
-  return message.parts
-    .filter(part => part.contentType === 'text/plain' && part.content)
-    .map(part => part.content)
-    .join('\n');
+export function messageToString(message: Message | A2AMessage): string {
+  if ('parts' in message) {
+    // Handle standard Message type
+    return message.parts
+      .filter(part => part.contentType === 'text/plain' && part.content)
+      .map(part => part.content)
+      .join('\n');
+  } else {
+    // Handle A2AMessage type
+    return message.content;
+  }
 }
 
 /**
@@ -196,5 +257,5 @@ export function messageToString(message: Message): string {
  * @returns A new message
  */
 export function stringToMessage(text: string): Message {
-  return createMessage(text);
+  return createTextMessage(text);
 }

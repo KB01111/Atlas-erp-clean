@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { AlertTriangle, XCircle, AlertCircle, Info, RefreshCw } from 'lucide-react';
+import { AlertTriangle, XCircle, Info, RefreshCw } from 'lucide-react';
 import { ShineBorder } from './shine-border';
 
 interface ErrorMessageProps {
@@ -108,18 +108,18 @@ export function ErrorMessage({
             <div className="flex-shrink-0 mt-1">
               {currentVariant.icon}
             </div>
-            
+
             <div className="flex-1">
               {title && (
                 <h3 className={`font-semibold mb-1 ${currentVariant.textColor}`}>
                   {title}
                 </h3>
               )}
-              
+
               <p className={`${currentVariant.textColor}`}>
                 {message}
               </p>
-              
+
               {details && (
                 <div className="mt-2">
                   <button
@@ -142,7 +142,7 @@ export function ErrorMessage({
                       />
                     </svg>
                   </button>
-                  
+
                   {isExpanded && (
                     <div className="mt-2 p-2 bg-white/20 dark:bg-black/20 rounded-md text-sm font-mono overflow-auto max-h-[200px]">
                       {details}
@@ -150,14 +150,14 @@ export function ErrorMessage({
                   )}
                 </div>
               )}
-              
+
               {(actions.length > 0 || onRetry) && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {onRetry && (
                     <button
                       onClick={onRetry}
                       className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-md
-                        ${variant === 'error' ? 'bg-red-100 dark:bg-red-800/30 text-red-800 dark:text-red-200' : 
+                        ${variant === 'error' ? 'bg-red-100 dark:bg-red-800/30 text-red-800 dark:text-red-200' :
                           variant === 'warning' ? 'bg-amber-100 dark:bg-amber-800/30 text-amber-800 dark:text-amber-200' :
                           'bg-blue-100 dark:bg-blue-800/30 text-blue-800 dark:text-blue-200'
                         }
@@ -168,13 +168,13 @@ export function ErrorMessage({
                       Retry
                     </button>
                   )}
-                  
+
                   {actions.map((action, index) => (
                     <button
                       key={index}
                       onClick={action.onClick}
                       className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-md
-                        ${variant === 'error' ? 'bg-red-100 dark:bg-red-800/30 text-red-800 dark:text-red-200' : 
+                        ${variant === 'error' ? 'bg-red-100 dark:bg-red-800/30 text-red-800 dark:text-red-200' :
                           variant === 'warning' ? 'bg-amber-100 dark:bg-amber-800/30 text-amber-800 dark:text-amber-200' :
                           'bg-blue-100 dark:bg-blue-800/30 text-blue-800 dark:text-blue-200'
                         }

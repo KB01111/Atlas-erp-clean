@@ -24,13 +24,12 @@ export default function EnhancedKPICard({
   color,
 }: EnhancedKPICardProps) {
   // Make the KPI card readable by CopilotKit
-  useEffect(() => {
-    useCopilotReadable({
-      name: title.toLowerCase(),
-      description: `Current ${title.toLowerCase()} information`,
-      value: { value, change },
-    });
-  }, [title, value, change]);
+  // This must be at the top level of the component, not inside useEffect
+  useCopilotReadable({
+    name: title.toLowerCase(),
+    description: `Current ${title.toLowerCase()} information`,
+    value: { value, change },
+  });
 
   // Format the value with commas for thousands
   const formattedValue = value.toLocaleString();

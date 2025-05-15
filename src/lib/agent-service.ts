@@ -1,6 +1,7 @@
 import { getLLMSettings } from './llm-settings';
-import { LiteLLM } from 'litellm';
+import * as litellm from 'litellm';
 import * as surrealDB from './surreal-client';
+import { v4 as uuidv4 } from 'uuid';
 import {
   Agent,
   AgentSchema,
@@ -241,11 +242,9 @@ async function executeAgentLegacy(
     // Get LLM settings
     const llmSettings = await getLLMSettings();
 
-    // Initialize LiteLLM with the API key
-    const liteLLM = new LiteLLM({
-      apiKey: llmSettings.apiKey,
-      defaultModel: agent.model || llmSettings.model || 'gpt-3.5-turbo',
-    });
+    // Set the API key for LiteLLM
+    litellm.apiKey = llmSettings.apiKey;
+    const defaultModel = agent.model || llmSettings.model || 'gpt-3.5-turbo';
 
     // Report progress
     onProgress(`\nConnecting to language model...\n`);
@@ -260,8 +259,8 @@ async function executeAgentLegacy(
     onProgress(`\nProcessing request...\n`);
 
     // Call the LLM
-    const response = await liteLLM.chatCompletion({
-      model: agent.model || llmSettings.model || 'gpt-3.5-turbo',
+    const response = await litellm.chatCompletion({
+      model: defaultModel,
       messages,
       temperature: 0.7,
       max_tokens: 1000,

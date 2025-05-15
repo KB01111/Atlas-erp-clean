@@ -6,32 +6,33 @@ import * as agentService from '@/lib/agent-service';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { params } = context;
   try {
     const { id } = params;
     const body = await request.json();
-    
+
     // Get the agent
     const agent = await agentService.getAgentById(id);
-    
+
     if (!agent) {
       return NextResponse.json(
         { error: `Agent with ID ${id} not found` },
         { status: 404 }
       );
     }
-    
+
     // Check if we should use A2A protocol
     const useA2A = body.useA2A !== false; // Default to true
-    
+
     // For streaming responses, we would use a different approach
     // For now, we'll use a simple callback to collect progress
     const progressMessages: string[] = [];
     const onProgress = (message: string) => {
       progressMessages.push(message);
     };
-    
+
     // Execute the agent
     const result = await agentService.executeAgent(
       agent,
@@ -39,7 +40,7 @@ export async function POST(
       onProgress,
       useA2A
     );
-    
+
     return NextResponse.json({
       success: result.success,
       output: result.output,

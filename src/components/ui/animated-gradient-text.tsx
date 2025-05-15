@@ -107,7 +107,7 @@ export const AnimatedGradientText = memo(function AnimatedGradientText({
     // Initial setup
     updateAnimation();
 
-    // Create a MutationObserver to watch for changes to isVisibleRef and isInViewportRef
+    // Create an interval to check for changes to isVisibleRef and isInViewportRef
     const checkInterval = setInterval(() => {
       updateAnimation();
     }, 1000); // Check every second

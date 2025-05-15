@@ -156,8 +156,8 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Check if this provider requires an API base URL
-    const requiresApiBase = ["azure", "ollama", "local"].includes(provider.toLowerCase());
+    // Check if this provider requires an API base
+    const requiresApiBase = ["ollama", "local", "azure"].includes(provider.toLowerCase());
     if (requiresApiBase && !apiBase) {
       return NextResponse.json(
         { success: false, error: `${provider} requires an API base URL` },
@@ -176,13 +176,37 @@ export async function PUT(req: NextRequest) {
         api_key: apiKey,
         api_base: apiBase,
         max_tokens: 10, // Keep it small for testing
-        timeout: 10, // Set a short timeout for testing
+        timeout: 10000, // 10 second timeout for testing
       });
+
+      // Save the successful settings to the server
+      try {
+        // Only save if we're testing with the same provider/model as the current settings
+        if (provider === cachedSettings.provider && model === cachedSettings.model) {
+          // Update cached settings with the tested values
+          cachedSettings = {
+            ...cachedSettings,
+            apiKey,
+            apiBase,
+          };
+
+          // Save settings to file
+          fs.writeFileSync(SETTINGS_FILE, JSON.stringify(cachedSettings, null, 2), 'utf8');
+
+          // Update environment variables
+          process.env.LLM_API_KEY = apiKey;
+          process.env.LLM_API_BASE = apiBase;
+        }
+      } catch (saveError) {
+        console.warn("Warning: Successfully tested connection but failed to save settings:", saveError);
+        // Continue with success response even if saving failed
+      }
 
       return NextResponse.json({
         success: true,
         message: "Connection successful",
         model: response.model,
+        responseTime: response.usage?.total_tokens || 0,
       });
     } catch (error) {
       // Handle specific LiteLLM errors

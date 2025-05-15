@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes';
 import { RateLimitProvider } from '@/context/RateLimitContext';
 import { PerformanceOptimizer } from '@/components/PerformanceOptimizer';
 import ErrorBoundary from '@/components/ui/error-boundary';
+import { Toaster } from '@/components/ui/sonner';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -12,7 +13,15 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      // Fix hydration mismatch by disabling SSR for theme
+      enableColorScheme={false}
+      // Disable theme effect until after hydration to avoid mismatch
+      disableTransitionOnChange
+    >
       <RateLimitProvider>
         <ErrorBoundary
           onError={(error, errorInfo) => {
@@ -22,6 +31,7 @@ export function Providers({ children }: ProvidersProps) {
         >
           <PerformanceOptimizer>
             {children}
+            <Toaster richColors closeButton position="top-right" />
           </PerformanceOptimizer>
         </ErrorBoundary>
       </RateLimitProvider>

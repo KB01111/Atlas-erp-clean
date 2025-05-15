@@ -5,7 +5,8 @@ import { MagicCard } from "@/components/magicui/magic-card";
 import { ShineBorder } from "@/components/ui/shine-border";
 import { ShimmerButton } from "@/components/magicui/shimmer-button";
 import { WorkflowNode, WorkflowEdge } from '@/lib/workflow-service';
-import { Plus, Trash, ArrowRight, Settings, Play, Clock } from 'lucide-react';
+import { NodeType } from '@/lib/arango-knowledge-service';
+import { Plus, Trash, ArrowRight, Settings, Play, Clock, Brain, FileText } from 'lucide-react';
 
 interface WorkflowBuilderProps {
   workflow: {
@@ -103,7 +104,7 @@ export default function WorkflowBuilder({
   }, []);
 
   // Add a new node
-  const addNode = (type: 'agent' | 'condition' | 'transform' | 'input' | 'output') => {
+  const addNode = (type: 'agent' | 'condition' | 'transform' | 'input' | 'output' | 'knowledge') => {
     if (readOnly) return;
 
     const newNode: WorkflowNode = {
@@ -301,6 +302,8 @@ export default function WorkflowBuilder({
         return 'bg-green-500';
       case 'output':
         return 'bg-red-500';
+      case 'knowledge':
+        return 'bg-indigo-500';
       default:
         return 'bg-gray-500';
     }
@@ -319,6 +322,8 @@ export default function WorkflowBuilder({
         return <div className="w-0 h-0 border-t-8 border-t-transparent border-r-8 border-r-green-200 border-b-8 border-b-transparent"></div>;
       case 'output':
         return <div className="w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-red-200 border-b-8 border-b-transparent"></div>;
+      case 'knowledge':
+        return <div className="w-4 h-4 rounded-full bg-indigo-200"></div>;
       default:
         return <div className="w-4 h-4 rounded-full bg-gray-200"></div>;
     }
@@ -362,6 +367,13 @@ export default function WorkflowBuilder({
           >
             <Plus size={14} className="mr-1" />
             Output
+          </ShimmerButton>
+          <ShimmerButton
+            onClick={() => addNode('knowledge')}
+            className="px-2 py-1 text-sm bg-indigo-500 text-white rounded-md"
+          >
+            <Plus size={14} className="mr-1" />
+            Knowledge
           </ShimmerButton>
 
           {onExecute && (
@@ -543,6 +555,109 @@ export default function WorkflowBuilder({
           </ShineBorder>
         </MagicCard>
       </div>
+
+      {/* Selected node controls */}
+      {selectedNode && !readOnly && (
+        <div className="mt-4">
+          <MagicCard className="overflow-hidden">
+            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold">Node Properties</h3>
+                  <button
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => removeNode(selectedNode)}
+                  >
+                    <Trash size={14} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {(() => {
+                    const node = nodes.find(n => n.id === selectedNode);
+                    if (!node) return null;
+
+                    return (
+                      <>
+                        <div>
+                          <label className="text-xs text-muted-foreground">Name</label>
+                          <input
+                            type="text"
+                            value={node.name}
+                            onChange={(e) => updateNode(node.id, { name: e.target.value })}
+                            className="w-full px-2 py-1 text-sm bg-muted rounded border border-input"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs text-muted-foreground">Type</label>
+                          <select
+                            value={node.type}
+                            onChange={(e) => updateNode(node.id, { type: e.target.value as any })}
+                            className="w-full px-2 py-1 text-sm bg-muted rounded border border-input"
+                          >
+                            <option value="agent">Agent</option>
+                            <option value="condition">Condition</option>
+                            <option value="transform">Transform</option>
+                            <option value="input">Input</option>
+                            <option value="output">Output</option>
+                            <option value="knowledge">Knowledge</option>
+                          </select>
+                        </div>
+
+                        {node.type === 'agent' && (
+                          <div>
+                            <label className="text-xs text-muted-foreground">Agent ID</label>
+                            <input
+                              type="text"
+                              value={node.agentId || ''}
+                              onChange={(e) => updateNode(node.id, { agentId: e.target.value })}
+                              className="w-full px-2 py-1 text-sm bg-muted rounded border border-input"
+                            />
+                          </div>
+                        )}
+
+                        {node.type === 'knowledge' && (
+                          <div className="space-y-2">
+                            <div>
+                              <label className="text-xs text-muted-foreground">Knowledge Node ID</label>
+                              <input
+                                type="text"
+                                value={node.knowledgeNodeId || ''}
+                                onChange={(e) => updateNode(node.id, { knowledgeNodeId: e.target.value })}
+                                className="w-full px-2 py-1 text-sm bg-muted rounded border border-input"
+                              />
+                            </div>
+
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id="useAsQuery"
+                                checked={node.config?.useAsQuery || false}
+                                onChange={(e) => updateNode(node.id, {
+                                  config: { ...node.config, useAsQuery: e.target.checked }
+                                })}
+                                className="mr-2"
+                              />
+                              <label htmlFor="useAsQuery" className="text-xs text-muted-foreground">
+                                Use input as search query
+                              </label>
+                            </div>
+
+                            <div className="text-xs text-gray-500">
+                              When enabled, the input to this node will be used to search for similar knowledge nodes.
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </ShineBorder>
+          </MagicCard>
+        </div>
+      )}
 
       {/* Selected edge controls */}
       {selectedEdge && !readOnly && (

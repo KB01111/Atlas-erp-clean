@@ -25,9 +25,17 @@ export const AnimatedGridPattern = memo(function AnimatedGridPattern({
   const animationRef = useRef<number>(0);
   const offsetRef = useRef<number>(0);
   const speedRef = useRef<number>(0.5); // pixels per frame
+  // Add these refs at the top level
+  const lastDrawTimeRef = useRef<number>(0);
+  const frameRateRef = useRef<number>(0);
 
   // Use our performance optimization hook
   const { isVisibleRef, isInViewportRef, isLowEndDevice, observeElement } = usePerformanceOptimization();
+
+  // Initialize frameRateRef based on device capability
+  useEffect(() => {
+    frameRateRef.current = isLowEndDevice ? 10 : 15;
+  }, [isLowEndDevice]);
 
   // Adjust grid size and animation speed based on device capability
   const effectiveGridSize = isLowEndDevice ? gridSize * 2 : gridSize;
@@ -78,11 +86,6 @@ export const AnimatedGridPattern = memo(function AnimatedGridPattern({
       resizeTimer = setTimeout(resizeCanvas, 200); // Increased debounce time
     };
     window.addEventListener("resize", handleResize);
-
-    // Track last animation time for throttling
-    const lastDrawTimeRef = useRef<number>(0);
-    // Lower frame rate for better performance, especially on low-end devices
-    const frameRateRef = useRef<number>(isLowEndDevice ? 10 : 15);
 
     // Draw the grid pattern with throttling
     const drawGrid = (timestamp: number) => {
@@ -162,7 +165,8 @@ export const AnimatedGridPattern = memo(function AnimatedGridPattern({
       }
       clearTimeout(resizeTimer);
     };
-  }, [effectiveGridSize, isLowEndDevice, observeElement, isVisibleRef, isInViewportRef]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveGridSize, isLowEndDevice, observeElement]);
 
   return (
     <canvas

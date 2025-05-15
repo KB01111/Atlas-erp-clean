@@ -10,6 +10,7 @@ export enum NodeType {
   CONCEPT = 'concept',
   ENTITY = 'entity',
   DOCUMENT = 'document',
+  DOCUMENT_CHUNK = 'document_chunk',
   FACT = 'fact',
   QUESTION = 'question',
   ANSWER = 'answer',
@@ -28,6 +29,11 @@ export interface KnowledgeNode {
   embedding?: number[];
   createdAt: string;
   updatedAt: string;
+  url?: string;
+  fileId?: string;
+  mimeType?: string;
+  size?: number;
+  parentId?: string;
 }
 
 /**
@@ -40,6 +46,8 @@ export enum EdgeType {
   REFERENCES = 'references',
   IS_A = 'is_a',
   HAS_PROPERTY = 'has_property',
+  EXTRACTED_FROM = 'extracted_from',
+  PART_OF = 'part_of',
 }
 
 /**
@@ -61,18 +69,31 @@ export interface KnowledgeEdge {
  */
 export async function initializeKnowledgeGraph() {
   try {
+    console.log('Initializing knowledge graph...');
+
+    // Check if we're using mock services
+    if (process.env.USE_MOCK_SERVICES === 'true') {
+      console.log('Using mock ArangoDB service for knowledge graph (configured in .env)');
+      return;
+    }
+
     // Ensure collections exist
     await arango.ensureCollection('knowledge_nodes', 'document');
     await arango.ensureCollection('knowledge_edges', 'edge');
 
     // Ensure graph exists
-    await arango.ensureGraph('knowledge_graph', [
-      {
-        collection: 'knowledge_edges',
-        from: ['knowledge_nodes'],
-        to: ['knowledge_nodes'],
-      },
-    ]);
+    try {
+      await arango.ensureGraph('knowledge_graph', [
+        {
+          collection: 'knowledge_edges',
+          from: ['knowledge_nodes'],
+          to: ['knowledge_nodes'],
+        },
+      ]);
+    } catch (error) {
+      console.error('Error ensuring graph:', error);
+      // Continue anyway, as we can still use the collections
+    }
 
     // Create a database instance
     const db = await arango.getArangoDB();
@@ -100,7 +121,8 @@ export async function initializeKnowledgeGraph() {
     console.log('Knowledge graph initialized successfully');
   } catch (error) {
     console.error('Error initializing knowledge graph:', error);
-    throw error;
+    console.log('Will continue with limited functionality');
+    // Don't throw the error, just log it and continue
   }
 }
 
@@ -324,9 +346,17 @@ export async function getConnectedNodes(
 /**
  * Generate embedding for text
  * @param text The text to embed
+ * @param options Optional configuration for embedding generation
  * @returns The embedding vector
  */
-async function generateEmbedding(text: string): Promise<number[]> {
+async function generateEmbedding(
+  text: string,
+  options: {
+    model?: string;
+    chunkSize?: number;
+    truncate?: boolean;
+  } = {}
+): Promise<number[]> {
   try {
     // Get LLM settings
     const llmSettings = await getLLMSettings();
@@ -334,13 +364,24 @@ async function generateEmbedding(text: string): Promise<number[]> {
     // Initialize LiteLLM with the API key
     const liteLLM = new LiteLLM({
       apiKey: llmSettings.apiKey,
-      defaultModel: 'text-embedding-ada-002', // Use a default embedding model
+      defaultModel: options.model || 'text-embedding-ada-002', // Use a default embedding model
     });
+
+    // Truncate or chunk text if needed
+    let processedText = text;
+    if (options.truncate && text.length > 8000) {
+      // Truncate to 8000 characters if requested
+      processedText = text.substring(0, 8000);
+    } else if (options.chunkSize && text.length > options.chunkSize) {
+      // For now, just truncate to the chunk size
+      // In a more advanced implementation, we would split into chunks and process each
+      processedText = text.substring(0, options.chunkSize);
+    }
 
     // Generate embeddings
     const embeddingResponse = await liteLLM.embedding({
-      model: 'text-embedding-ada-002',
-      input: text,
+      model: options.model || 'text-embedding-ada-002',
+      input: processedText,
     });
 
     if (!embeddingResponse.data || embeddingResponse.data.length === 0) {
@@ -440,3 +481,378 @@ export async function updateNode(
     throw error;
   }
 }
+
+/**
+ * Get nodes with optional filtering
+ * @param options Filter options
+ * @returns The nodes
+ */
+export async function getNodes(options: {
+  limit?: number;
+  nodeType?: NodeType;
+  query?: string;
+} = {}): Promise<KnowledgeNode[]> {
+  try {
+    const { limit = 100, nodeType, query } = options;
+
+    if (query) {
+      // If query is provided, use search function
+      return searchNodes(query, limit);
+    }
+
+    // Build the query
+    let result;
+    if (nodeType) {
+      result = await arango.query(aql`
+        FOR node IN knowledge_nodes
+        FILTER node.type == ${nodeType}
+        SORT node.createdAt DESC
+        LIMIT ${limit}
+        RETURN node
+      `);
+    } else {
+      result = await arango.query(aql`
+        FOR node IN knowledge_nodes
+        SORT node.createdAt DESC
+        LIMIT ${limit}
+        RETURN node
+      `);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error getting knowledge nodes:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get edges between nodes
+ * @param nodeIds The node IDs
+ * @returns The edges
+ */
+export async function getEdgesBetweenNodes(nodeIds: string[]): Promise<KnowledgeEdge[]> {
+  try {
+    // Convert node IDs to full IDs if they don't already have the collection prefix
+    const fullNodeIds = nodeIds.map(id =>
+      id.includes('/') ? id : `knowledge_nodes/${id}`
+    );
+
+    const result = await arango.query(aql`
+      FOR edge IN knowledge_edges
+      FILTER edge._from IN ${fullNodeIds} AND edge._to IN ${fullNodeIds}
+      RETURN edge
+    `);
+
+    return result;
+  } catch (error) {
+    console.error('Error getting edges between nodes:', error);
+    throw error;
+  }
+}
+
+/**
+ * Save multiple nodes
+ * @param nodes The nodes to save
+ * @returns The saved nodes
+ */
+export async function saveNodes(nodes: KnowledgeNode[]): Promise<KnowledgeNode[]> {
+  try {
+    const savedNodes: KnowledgeNode[] = [];
+
+    // Process nodes one by one to handle embeddings
+    for (const node of nodes) {
+      if (node._key) {
+        // Update existing node
+        const updatedNode = await updateNode(node._key, {
+          type: node.type,
+          name: node.name,
+          content: node.content,
+          metadata: node.metadata,
+        });
+
+        if (updatedNode) {
+          savedNodes.push(updatedNode);
+        }
+      } else {
+        // Create new node
+        const newNode = await createNode(
+          node.type,
+          node.name,
+          node.content,
+          node.metadata
+        );
+
+        savedNodes.push(newNode);
+      }
+    }
+
+    return savedNodes;
+  } catch (error) {
+    console.error('Error saving nodes:', error);
+    throw error;
+  }
+}
+
+/**
+ * Save multiple edges
+ * @param edges The edges to save
+ * @returns The saved edges
+ */
+export async function saveEdges(edges: any[]): Promise<KnowledgeEdge[]> {
+  try {
+    const savedEdges: KnowledgeEdge[] = [];
+
+    // Process edges
+    for (const edge of edges) {
+      // Extract source and target IDs
+      let sourceKey = edge.source;
+      let targetKey = edge.target;
+
+      // If the IDs include the collection prefix, extract the key
+      if (sourceKey.includes('/')) {
+        sourceKey = sourceKey.split('/')[1];
+      }
+
+      if (targetKey.includes('/')) {
+        targetKey = targetKey.split('/')[1];
+      }
+
+      // Determine edge type
+      const edgeType = edge.type || EdgeType.RELATES_TO;
+
+      // Create or update edge
+      if (edge._key) {
+        // Update existing edge (not implemented yet)
+        // For now, we'll just skip existing edges
+        continue;
+      } else {
+        // Create new edge
+        const newEdge = await createEdge(
+          edgeType,
+          sourceKey,
+          targetKey,
+          edge.weight || 1.0,
+          edge.metadata
+        );
+
+        savedEdges.push(newEdge);
+      }
+    }
+
+    return savedEdges;
+  } catch (error) {
+    console.error('Error saving edges:', error);
+    throw error;
+  }
+}
+
+/**
+ * Process a document and create knowledge nodes
+ * @param documentContent The document content
+ * @param documentName The document name
+ * @param documentMetadata Optional document metadata
+ * @param options Optional processing options
+ * @returns The created document node and chunk nodes
+ */
+export async function processDocument(
+  documentContent: string,
+  documentName: string,
+  documentMetadata: Record<string, any> = {},
+  options: {
+    chunkSize?: number;
+    chunkOverlap?: number;
+    maxChunks?: number;
+    extractEntities?: boolean;
+    extractConcepts?: boolean;
+  } = {}
+): Promise<{
+  documentNode: KnowledgeNode;
+  chunkNodes: KnowledgeNode[];
+}> {
+  try {
+    // Set default options
+    const chunkSize = options.chunkSize || 1000;
+    const chunkOverlap = options.chunkOverlap || 200;
+    const maxChunks = options.maxChunks || 20;
+
+    // Create the document node
+    const documentNode = await createNode(
+      NodeType.DOCUMENT,
+      documentName,
+      documentContent.length > 1000 ? documentContent.substring(0, 1000) + '...' : documentContent,
+      {
+        ...documentMetadata,
+        fullContent: false, // Indicate this doesn't contain the full content
+        contentLength: documentContent.length,
+      }
+    );
+
+    // Split the document into chunks
+    const chunks = splitTextIntoChunks(documentContent, chunkSize, chunkOverlap, maxChunks);
+
+    // Create nodes for each chunk
+    const chunkNodes: KnowledgeNode[] = [];
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+
+      // Create a node for the chunk
+      const chunkNode = await createNode(
+        NodeType.DOCUMENT_CHUNK,
+        `${documentName} - Chunk ${i + 1}`,
+        chunk,
+        {
+          chunkIndex: i,
+          documentId: documentNode._key,
+          isChunk: true,
+        }
+      );
+
+      // Create an edge from the document to the chunk
+      await createEdge(
+        EdgeType.CONTAINS,
+        documentNode._key!,
+        chunkNode._key!,
+        1.0,
+        { chunkIndex: i }
+      );
+
+      // Create an edge from the chunk to the document
+      await createEdge(
+        EdgeType.PART_OF,
+        chunkNode._key!,
+        documentNode._key!,
+        1.0,
+        { chunkIndex: i }
+      );
+
+      chunkNodes.push(chunkNode);
+    }
+
+    return {
+      documentNode,
+      chunkNodes,
+    };
+  } catch (error) {
+    console.error('Error processing document:', error);
+    throw error;
+  }
+}
+
+/**
+ * Split text into chunks with overlap
+ * @param text The text to split
+ * @param chunkSize The size of each chunk
+ * @param overlap The overlap between chunks
+ * @param maxChunks The maximum number of chunks to create
+ * @returns The chunks
+ */
+function splitTextIntoChunks(
+  text: string,
+  chunkSize: number = 1000,
+  overlap: number = 200,
+  maxChunks: number = 20
+): string[] {
+  const chunks: string[] = [];
+
+  // Simple chunking by character count
+  let startIndex = 0;
+
+  while (startIndex < text.length && chunks.length < maxChunks) {
+    // Calculate end index
+    let endIndex = startIndex + chunkSize;
+
+    // Adjust end index to not cut words
+    if (endIndex < text.length) {
+      // Find the next space after the chunk size
+      const nextSpace = text.indexOf(' ', endIndex);
+      if (nextSpace !== -1 && nextSpace - endIndex < 100) {
+        endIndex = nextSpace;
+      }
+    }
+
+    // Extract the chunk
+    const chunk = text.substring(startIndex, Math.min(endIndex, text.length));
+    chunks.push(chunk);
+
+    // Move to the next chunk with overlap
+    startIndex = endIndex - overlap;
+
+    // Ensure we don't get stuck
+    if (startIndex <= 0 || startIndex >= text.length - 1) {
+      break;
+    }
+  }
+
+  return chunks;
+}
+
+/**
+ * Search for documents by content similarity
+ * @param query The search query
+ * @param limit The maximum number of results
+ * @returns The matching document nodes
+ */
+export async function searchDocuments(query: string, limit: number = 5): Promise<KnowledgeNode[]> {
+  try {
+    // Generate embedding for the query
+    const embedding = await generateEmbedding(query);
+
+    // Search for similar document chunks using vector similarity
+    const result = await arango.query(aql`
+      FOR node IN knowledge_nodes
+      FILTER node.type == ${NodeType.DOCUMENT_CHUNK} OR node.type == ${NodeType.DOCUMENT}
+      FILTER node.embedding != null
+      SORT DISTANCE(node.embedding, ${embedding})
+      LIMIT ${limit}
+      RETURN node
+    `);
+
+    return result;
+  } catch (error) {
+    console.error('Error searching documents:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get document chunks for a document
+ * @param documentKey The document key
+ * @returns The document chunks
+ */
+export async function getDocumentChunks(documentKey: string): Promise<KnowledgeNode[]> {
+  try {
+    // Get chunks connected to the document
+    const result = await arango.query(aql`
+      FOR v, e IN 1..1 OUTBOUND ${"knowledge_nodes/" + documentKey} knowledge_edges
+      FILTER e.type == ${EdgeType.CONTAINS}
+      SORT e.metadata.chunkIndex ASC
+      RETURN v
+    `);
+
+    return result;
+  } catch (error) {
+    console.error(`Error getting document chunks for ${documentKey}:`, error);
+    throw error;
+  }
+}
+
+// Export default object with all functions
+export default {
+  initializeKnowledgeGraph,
+  createNode,
+  getNodeByKey,
+  updateNode,
+  deleteNode,
+  createEdge,
+  getKnowledgeEdges,
+  getEdgesBetweenNodes,
+  getNodes,
+  searchNodes,
+  saveNodes,
+  saveEdges,
+  processDocument,
+  searchDocuments,
+  getDocumentChunks,
+};

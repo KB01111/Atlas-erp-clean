@@ -29,9 +29,9 @@ limit.maxIDLength:
   - value: 255
     constraints: {}
 
-# SQLite specific settings
+# PostgreSQL specific settings
 system.sql.pluginName:
-  - value: sqlite
+  - value: postgres
     constraints: {}
 
 system.sql.databaseName:
@@ -39,19 +39,19 @@ system.sql.databaseName:
     constraints: {}
 
 system.sql.connectAddr:
-  - value: /etc/temporal/sqlite
+  - value: postgres:5432
     constraints: {}
 
 system.sql.connectProtocol:
-  - value: ""
+  - value: tcp
     constraints: {}
 
 system.sql.user:
-  - value: ""
+  - value: temporal
     constraints: {}
 
 system.sql.password:
-  - value: ""
+  - value: temporal
     constraints: {}
 
 system.sql.maxConns:

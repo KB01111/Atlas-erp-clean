@@ -21,6 +21,7 @@ import { KnowledgeNode, NodeType, getKnowledgeEdges } from "@/lib/arango-knowled
 import dynamic from "next/dynamic";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { LoadingState } from "@/components/ui/loading-state";
+import KnowledgeGraphManager from "@/components/knowledge/KnowledgeGraphManager";
 
 // Dynamically import the KnowledgeGraphVisualization component with SSR disabled
 const KnowledgeGraphVisualization = dynamic(
@@ -114,40 +115,40 @@ export default function KnowledgePage() {
   const fetchNodes = async () => {
     try {
       setLoading(true);
+      setError(null);
 
-      let url = "/api/knowledge";
-      if (selectedType !== "all") {
-        url += `?type=${selectedType}`;
-      } else {
-        // Default to concepts if no type is selected
-        url += `?type=${NodeType.CONCEPT}`;
+      // Build the query URL based on filters
+      let url = "/api/knowledge/graph";
+      const params = new URLSearchParams();
+
+      if (searchQuery) {
+        params.append("query", searchQuery);
+      } else if (selectedType !== "all") {
+        params.append("nodeType", selectedType);
       }
 
-      // Fetch nodes
-      const nodesResponse = await fetch(url);
+      // Set a reasonable limit
+      params.append("limit", "100");
 
-      if (!nodesResponse.ok) {
-        throw new Error("Failed to fetch knowledge nodes");
+      if (params.toString()) {
+        url += `?${params.toString()}`;
       }
 
-      const nodesData = await nodesResponse.json();
-      setNodes(nodesData.nodes);
+      // Fetch knowledge graph (nodes and edges)
+      const response = await fetch(url);
 
-      // Fetch edges (in a real implementation, this would be from the API)
-      try {
-        // This is a mock implementation - in a real app, you would fetch from the API
-        const edgesData = await getKnowledgeEdges();
-        setEdges(edgesData);
-      } catch (edgeError) {
-        console.error("Error fetching knowledge edges:", edgeError);
-        // Don't fail the whole operation if edges fail to load
-        setEdges([]);
+      if (!response.ok) {
+        throw new Error("Failed to fetch knowledge graph");
       }
+
+      const data = await response.json();
+      setNodes(data.nodes);
+      setEdges(data.edges);
 
       setError(null);
     } catch (error) {
-      console.error("Error fetching knowledge nodes:", error);
-      setError("Failed to fetch knowledge nodes");
+      console.error("Error fetching knowledge graph:", error);
+      setError("Failed to fetch knowledge graph");
     } finally {
       setLoading(false);
     }
@@ -162,19 +163,21 @@ export default function KnowledgePage() {
 
     try {
       setLoading(true);
+      setError(null);
 
-      const response = await fetch(`/api/knowledge?query=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`/api/knowledge/graph?query=${encodeURIComponent(searchQuery)}`);
 
       if (!response.ok) {
-        throw new Error("Failed to search knowledge nodes");
+        throw new Error("Failed to search knowledge graph");
       }
 
       const data = await response.json();
       setNodes(data.nodes);
+      setEdges(data.edges);
       setError(null);
     } catch (error) {
-      console.error("Error searching knowledge nodes:", error);
-      setError("Failed to search knowledge nodes");
+      console.error("Error searching knowledge graph:", error);
+      setError("Failed to search knowledge graph");
     } finally {
       setLoading(false);
     }
@@ -208,7 +211,7 @@ export default function KnowledgePage() {
       });
       setShowAddModal(false);
 
-      // Refresh the nodes list
+      // Refresh the knowledge graph
       fetchNodes();
     } catch (error) {
       console.error("Error creating knowledge node:", error);
@@ -231,7 +234,7 @@ export default function KnowledgePage() {
         throw new Error("Failed to delete knowledge node");
       }
 
-      // Refresh the nodes list
+      // Refresh the knowledge graph
       fetchNodes();
     } catch (error) {
       console.error("Error deleting knowledge node:", error);
@@ -248,6 +251,8 @@ export default function KnowledgePage() {
         return <Database className="text-blue-500" size={20} />;
       case NodeType.DOCUMENT:
         return <FileText className="text-green-500" size={20} />;
+      case NodeType.DOCUMENT_CHUNK:
+        return <FileText className="text-green-300" size={20} />;
       case NodeType.FACT:
         return <Lightbulb className="text-yellow-500" size={20} />;
       case NodeType.QUESTION:
@@ -352,12 +357,59 @@ export default function KnowledgePage() {
       ) : (
         <div className="flex flex-col gap-6">
           <div className="h-[600px] mb-6">
-            <KnowledgeGraphVisualization
-              nodes={nodes}
-              edges={edges}
-              onNodeClick={(node) => {
-                // In a real implementation, you would show details about the node
-                console.log('Node clicked:', node);
+            <KnowledgeGraphManager
+              initialNodes={nodes}
+              initialEdges={edges.map(edge => ({
+                id: edge._key || edge._id || `edge-${Date.now()}-${Math.random()}`,
+                source: edge._from?.replace('knowledge_nodes/', '') || '',
+                target: edge._to?.replace('knowledge_nodes/', '') || '',
+                label: edge.type,
+                type: edge.type,
+              }))}
+              onSave={async (updatedNodes, updatedEdges) => {
+                try {
+                  const response = await fetch('/api/knowledge/graph', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      nodes: updatedNodes,
+                      edges: updatedEdges,
+                    }),
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('Failed to save knowledge graph');
+                  }
+
+                  const data = await response.json();
+                  setNodes(data.nodes);
+                  setEdges(data.edges);
+
+                  return data;
+                } catch (error) {
+                  console.error('Error saving knowledge graph:', error);
+                  throw error;
+                }
+              }}
+              onLoad={async () => {
+                try {
+                  const response = await fetch('/api/knowledge/graph');
+
+                  if (!response.ok) {
+                    throw new Error('Failed to load knowledge graph');
+                  }
+
+                  const data = await response.json();
+                  setNodes(data.nodes);
+                  setEdges(data.edges);
+
+                  return data;
+                } catch (error) {
+                  console.error('Error loading knowledge graph:', error);
+                  throw error;
+                }
               }}
             />
           </div>

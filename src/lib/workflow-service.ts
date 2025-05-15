@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as surrealDB from './surreal-client';
 import { getAgentById, executeAgent, Agent } from './agent-service';
+import { getNodeByKey, searchNodes } from './arango-knowledge-service';
 import { StateGraph, END } from '@langchain/langgraph';
 // Use in-memory storage instead of checkpoint
 import { RunnableConfig } from '@langchain/core/runnables';
@@ -25,9 +26,10 @@ export interface Workflow {
  */
 export interface WorkflowNode {
   id: string;
-  type: 'agent' | 'condition' | 'input' | 'output' | 'transform';
+  type: 'agent' | 'condition' | 'input' | 'output' | 'transform' | 'knowledge';
   name: string;
   agentId?: string;
+  knowledgeNodeId?: string;
   config?: Record<string, any>;
   position?: { x: number; y: number };
 }
@@ -373,6 +375,46 @@ async function buildWorkflowGraph(workflow: Workflow) {
 
         // Return the result
         return { output: result.output };
+      };
+
+      // Add the node to the graph
+      graph.addNode(node.id, nodeFunction);
+    } else if (node.type === 'knowledge' && node.knowledgeNodeId) {
+      // Create a node function that retrieves knowledge
+      const nodeFunction = async (state: WorkflowGraphState) => {
+        try {
+          // Get the knowledge node
+          const knowledgeNode = await getNodeByKey(node.knowledgeNodeId);
+          if (!knowledgeNode) {
+            throw new Error(`Knowledge node ${node.knowledgeNodeId} not found for node ${node.id}`);
+          }
+
+          // Get the input for this node
+          const input = typeof state.input === 'string'
+            ? state.input
+            : JSON.stringify(state.input);
+
+          // If input is a query, search for similar knowledge
+          let output = knowledgeNode.content;
+
+          if (input && input.trim() && node.config?.useAsQuery) {
+            // Search for similar knowledge
+            const searchResults = await searchNodes(input, 3);
+
+            if (searchResults.length > 0) {
+              // Combine the search results
+              output = searchResults.map(result =>
+                `${result.name}:\n${result.content}`
+              ).join('\n\n');
+            }
+          }
+
+          // Return the knowledge content
+          return { output };
+        } catch (error) {
+          console.error(`Error in knowledge node ${node.id}:`, error);
+          return { output: `Error retrieving knowledge: ${error instanceof Error ? error.message : 'Unknown error'}` };
+        }
       };
 
       // Add the node to the graph

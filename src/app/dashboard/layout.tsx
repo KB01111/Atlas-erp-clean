@@ -20,14 +20,35 @@ import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { Ripple } from "@/components/magicui/ripple";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { DotPattern } from "@/components/magicui/dot-pattern";
+import { useTheme } from "next-themes";
+import { Moon, Sun, Monitor } from "lucide-react";
 import { memo } from "react";
 
 // Note: This layout has been enhanced with MagicUI components
 // See Memory Bank documentation: UI-Improvements.md for details
 
+// Simple Theme Switcher component
+const ThemeSwitcherSimple = () => {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <button
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="p-2 rounded-full bg-background/80 backdrop-blur-sm border border-input hover:bg-accent transition-colors"
+      aria-label="Toggle theme"
+    >
+      {theme === 'dark' ? (
+        <Sun className="h-5 w-5 text-yellow-400" />
+      ) : (
+        <Moon className="h-5 w-5 text-slate-700" />
+      )}
+    </button>
+  );
+};
+
 // Memoize the NavItem component to prevent unnecessary re-renders
 const NavItem = memo(({ item, isActive }: {
-  item: { name: string; href: string; icon: any };
+  item: { name: string; href: string; icon: React.ElementType };
   isActive: boolean;
 }) => {
   const Icon = item.icon;
@@ -175,6 +196,11 @@ export default function DashboardLayout({
           className="absolute inset-0"
         />
         <div className="relative z-10">
+          {/* Theme Switcher */}
+          <div className="absolute top-6 right-6 z-20">
+            <ThemeSwitcherSimple />
+          </div>
+
           {children}
         </div>
       </main>

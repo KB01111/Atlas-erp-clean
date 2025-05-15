@@ -1,22 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as surrealDB from '@/lib/surreal-client';
+import nangoClient from '@/lib/nango-client';
+import { mockNango } from '@/lib/mock-service-provider';
 
 /**
  * API route for fetching all Nango connections
- * In a real implementation, this would call the Nango API
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    // In a real implementation, we would call the Nango API
-    // For now, we'll fetch from our local database
-    const connections = await surrealDB.query(`
-      SELECT * FROM connections
-      ORDER BY created_at DESC;
-    `);
-    
-    return NextResponse.json({
-      connections: connections[0].result || [],
-    });
+    // Check if Nango API is available
+    const isNangoAvailable = await nangoClient.checkAvailability();
+
+    if (isNangoAvailable) {
+      // Call the real Nango API
+      const connectionsResponse = await nangoClient.listConnections();
+
+      return NextResponse.json({
+        connections: connectionsResponse.connections || [],
+        useMockService: false
+      });
+    } else {
+      // Use mock service
+      console.log('Nango API is not available, using mock service');
+      const mockConnections = await mockNango.listConnections();
+
+      return NextResponse.json({
+        connections: mockConnections.connections || [],
+        useMockService: true
+      });
+    }
   } catch (error) {
     console.error('Error fetching connections:', error);
     return NextResponse.json(
@@ -28,12 +39,11 @@ export async function GET(request: NextRequest) {
 
 /**
  * API route for creating a new Nango connection
- * In a real implementation, this would call the Nango API
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Validate request body
     if (!body.provider_name || !body.connection_id) {
       return NextResponse.json(
@@ -41,20 +51,50 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
-    // In a real implementation, we would call the Nango API
-    // For now, we'll store in our local database
-    const connection = await surrealDB.create('connections', {
-      provider_name: body.provider_name,
-      connection_id: body.connection_id,
-      connection_config_id: body.connection_config_id || body.provider_name,
-      status: 'active',
-      created_at: new Date().toISOString(),
-    });
-    
-    return NextResponse.json({
-      connection,
-    });
+
+    // Check if Nango API is available
+    const isNangoAvailable = await nangoClient.checkAvailability();
+
+    if (isNangoAvailable) {
+      // Call the real Nango API
+      const connectionData = {
+        connection_id: body.connection_id,
+        provider_config_key: body.connection_config_id || body.provider_name,
+        metadata: body.metadata || {},
+        // Add other fields as needed for the specific authentication type
+        access_token: body.access_token,
+        refresh_token: body.refresh_token,
+        expires_at: body.expires_at,
+        api_key: body.api_key,
+        username: body.username,
+        password: body.password
+      };
+
+      const connection = await nangoClient.createConnection(connectionData);
+
+      return NextResponse.json({
+        connection,
+        useMockService: false
+      });
+    } else {
+      // Use mock service
+      console.log('Nango API is not available, using mock service');
+      const connectionData = {
+        connection_id: body.connection_id,
+        provider_config_key: body.connection_config_id || body.provider_name,
+        metadata: body.metadata || {},
+        access_token: body.access_token,
+        refresh_token: body.refresh_token,
+        expires_at: body.expires_at
+      };
+
+      const connection = await mockNango.createConnection(connectionData);
+
+      return NextResponse.json({
+        connection,
+        useMockService: true
+      });
+    }
   } catch (error) {
     console.error('Error creating connection:', error);
     return NextResponse.json(

@@ -1,6 +1,6 @@
 import { Agent, AgentExecutionResult } from '../validation/schemas';
 import { getLLMSettings } from '../llm-settings';
-import { LiteLLM } from 'litellm';
+import litellm from 'litellm';
 import * as surrealDB from '../surreal-client';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -50,76 +50,74 @@ export async function executeAgentWithA2A(
       messages: [],
       startedAt: new Date().toISOString(),
     };
-    
+
     // Save the run
     await saveRun(run);
-    
+
     // Report progress
     onProgress(`Running ${agent.name}...\n\nInitializing...\n`);
-    
+
     // Get LLM settings
     const llmSettings = await getLLMSettings();
-    
-    // Initialize LiteLLM with the API key
-    const liteLLM = new LiteLLM({
-      apiKey: llmSettings.apiKey,
-      defaultModel: agent.model || llmSettings.model || 'gpt-3.5-turbo',
-    });
-    
+
+    // Set the API key for LiteLLM
+    litellm.apiKey = llmSettings.apiKey;
+    const defaultModel = agent.model || llmSettings.model || 'gpt-3.5-turbo';
+
     // Report progress
     onProgress(`\nConnecting to language model...\n`);
-    
+
     // Create system message
     const systemMessage = createMessage({
       type: A2AMessageType.SYSTEM,
       role: A2AMessageRole.SYSTEM,
       content: agent.systemPrompt,
     });
-    
+
     // Create user message
     const userMessage = createMessage({
       type: A2AMessageType.USER_MESSAGE,
       role: A2AMessageRole.USER,
       content: input,
     });
-    
+
     // Add messages to run
     run.messages.push(systemMessage, userMessage);
     await updateRun(runId, { messages: run.messages });
-    
+
     // Report progress
     onProgress(`\nProcessing request...\n`);
-    
+
     // Prepare messages for LLM
     const messages = [
       { role: 'system', content: messageToString(systemMessage) },
       { role: 'user', content: messageToString(userMessage) },
     ];
-    
+
     // Call the LLM
-    const response = await liteLLM.chatCompletion({
-      model: agent.model || llmSettings.model || 'gpt-3.5-turbo',
+    const response = await litellm.chatCompletion({
+      model: defaultModel,
       messages,
       temperature: 0.7,
       max_tokens: 1000,
     });
-    
+
     // Get the response content
     const content = response.choices[0]?.message?.content || 'No response from the model.';
-    
+
     // Create assistant message
     const assistantMessage = createMessage({
       type: A2AMessageType.ASSISTANT_MESSAGE,
       role: A2AMessageRole.ASSISTANT,
       content,
     });
-    
+
     // Add message to run
     run.messages.push(assistantMessage);
-    
+
     // Report progress
     onProgress(`\nGenerating response...\n`);
-    
+
     // Update run with completion
     await updateRun(runId, {
       status: 'completed',
@@ -127,10 +125,10 @@ export async function executeAgentWithA2A(
       messages: run.messages,
       completedAt: new Date().toISOString(),
     });
-    
+
     // Report progress
     onProgress(`\n${content}\n\nTask completed successfully!\n`);
-    
+
     // Return result
     return {
       success: true,
@@ -138,14 +136,14 @@ export async function executeAgentWithA2A(
     };
   } catch (error) {
     console.error(`Error executing agent ${agent.name} with A2A:`, error);
-    
+
     // Create error message
     const errorMessage = createMessage({
       type: A2AMessageType.ERROR,
       role: A2AMessageRole.SYSTEM,
       content: error instanceof Error ? error.message : 'Unknown error',
     });
-    
+
     // Update run with error
     try {
       const runId = uuidv4();
@@ -158,10 +156,10 @@ export async function executeAgentWithA2A(
     } catch (saveError) {
       console.error('Error saving run error:', saveError);
     }
-    
+
     // Report progress
     onProgress(`\nError: ${error instanceof Error ? error.message : 'Unknown error'}\n`);
-    
+
     // Return error result
     return {
       success: false,
@@ -221,7 +219,7 @@ export async function getAgentRuns(agentId: string): Promise<AgentRun[]> {
       WHERE agentId = $agentId
       ORDER BY startedAt DESC;
     `;
-    
+
     const result = await surrealDB.query(query, { agentId });
     return result[0]?.result || [];
   } catch (error) {

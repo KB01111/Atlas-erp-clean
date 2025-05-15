@@ -1,6 +1,6 @@
 import * as surrealDB from './surreal-client';
 import { getLLMSettings } from './llm-settings';
-import { LiteLLM } from 'litellm';
+import litellm from 'litellm';
 
 /**
  * Interface for vector embedding results
@@ -26,34 +26,32 @@ export async function createVectorEmbedding(
   try {
     // Extract text from the document
     const text = await extractTextFromDocument(buffer, fileName, fileType);
-    
+
     if (!text || text.trim().length === 0) {
       console.warn(`No text extracted from document: ${fileName}`);
       return null;
     }
-    
+
     // Get LLM settings
     const llmSettings = await getLLMSettings();
-    
-    // Initialize LiteLLM with the API key
-    const liteLLM = new LiteLLM({
-      apiKey: llmSettings.apiKey,
-      defaultModel: 'text-embedding-ada-002', // Use a default embedding model
-    });
-    
+
+    // Set the API key for LiteLLM
+    litellm.apiKey = llmSettings.apiKey;
+    const embeddingModel = 'text-embedding-ada-002'; // Use a default embedding model
+
     // Generate embeddings
-    const embeddingResponse = await liteLLM.embedding({
-      model: 'text-embedding-ada-002',
+    const embeddingResponse = await litellm.embedding({
+      model: embeddingModel,
       input: text,
     });
-    
+
     if (!embeddingResponse.data || embeddingResponse.data.length === 0) {
       throw new Error('Failed to generate embeddings');
     }
-    
+
     // Store the embedding in SurrealDB
     const embedding = embeddingResponse.data[0].embedding;
-    
+
     // Create embedding record
     const embeddingRecord = await surrealDB.create('embeddings', {
       text,
@@ -62,7 +60,7 @@ export async function createVectorEmbedding(
       fileType,
       createdAt: new Date().toISOString(),
     });
-    
+
     return {
       id: embeddingRecord.id,
       text,
@@ -87,28 +85,26 @@ export async function searchDocumentsByVector(
   try {
     // Get LLM settings
     const llmSettings = await getLLMSettings();
-    
-    // Initialize LiteLLM with the API key
-    const liteLLM = new LiteLLM({
-      apiKey: llmSettings.apiKey,
-      defaultModel: 'text-embedding-ada-002', // Use a default embedding model
-    });
-    
+
+    // Set the API key for LiteLLM
+    litellm.apiKey = llmSettings.apiKey;
+    const embeddingModel = 'text-embedding-ada-002'; // Use a default embedding model
+
     // Generate embeddings for the query
-    const embeddingResponse = await liteLLM.embedding({
-      model: 'text-embedding-ada-002',
+    const embeddingResponse = await litellm.embedding({
+      model: embeddingModel,
       input: query,
     });
-    
+
     if (!embeddingResponse.data || embeddingResponse.data.length === 0) {
       throw new Error('Failed to generate embeddings for query');
     }
-    
+
     const queryEmbedding = embeddingResponse.data[0].embedding;
-    
+
     // Search for similar documents using vector similarity in SurrealDB
     const results = await surrealDB.query(`
-      SELECT 
+      SELECT
         documents.id,
         documents.name,
         documents.category,
@@ -126,7 +122,7 @@ export async function searchDocumentsByVector(
     `, {
       embedding: queryEmbedding,
     });
-    
+
     return results[0].result || [];
   } catch (error) {
     console.error('Error searching documents by vector:', error);

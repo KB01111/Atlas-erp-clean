@@ -143,52 +143,49 @@ export default function DocumentsPage() {
 
 
 
-  // Register CopilotKit hooks inside useEffect
-  useEffect(() => {
-    // Make documents readable by the AI
-    useCopilotReadable({
-      name: "documents",
-      description: "List of all documents in the system",
-      value: documents,
-    });
+  // Make documents readable by the AI - must be at the top level of the component
+  useCopilotReadable({
+    name: "documents",
+    description: "List of all documents in the system",
+    value: documents,
+  });
 
-    // Search documents action for the AI
-    useCopilotAction({
-      name: "search_documents",
-      description: "Search for documents by name or category",
-      parameters: [
-        {
-          name: "query",
-          type: "string",
-          description: "Search query",
-          required: false,
-        },
-        {
-          name: "category",
-          type: "string",
-          description: "Document category",
-          required: false,
-        },
-      ],
-      handler: async ({ query, category }) => {
-        let filteredDocs = [...documents];
-
-        if (query) {
-          filteredDocs = filteredDocs.filter(doc =>
-            doc.name.toLowerCase().includes(query.toLowerCase())
-          );
-        }
-
-        if (category && category !== "All") {
-          filteredDocs = filteredDocs.filter(doc =>
-            doc.category === category
-          );
-        }
-
-        return filteredDocs;
+  // Search documents action for the AI - must be at the top level of the component
+  useCopilotAction({
+    name: "search_documents",
+    description: "Search for documents by name or category",
+    parameters: [
+      {
+        name: "query",
+        type: "string",
+        description: "Search query",
+        required: false,
       },
-    });
-  }, [documents]); // Re-register when documents change
+      {
+        name: "category",
+        type: "string",
+        description: "Document category",
+        required: false,
+      },
+    ],
+    handler: async ({ query, category }) => {
+      let filteredDocs = [...documents];
+
+      if (query) {
+        filteredDocs = filteredDocs.filter(doc =>
+          doc.name.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+
+      if (category && category !== "All") {
+        filteredDocs = filteredDocs.filter(doc =>
+          doc.category === category
+        );
+      }
+
+      return filteredDocs;
+    },
+  });
 
 
 

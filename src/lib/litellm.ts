@@ -1,32 +1,83 @@
 /**
- * Mock LiteLLM class for Docker build
+ * LiteLLM API implementation
+ * This provides a compatible interface with the litellm package
  */
+
+import axios from 'axios';
+
+// Configuration
+const API_KEY = process.env.LLM_API_KEY || '';
+const DEFAULT_MODEL = process.env.LLM_MODEL || 'gpt-4o';
+const BASE_URL = 'https://api.litellm.ai/v1';
+
+// Helper function to make API requests
+async function makeRequest(endpoint: string, data: any) {
+  try {
+    const response = await axios({
+      method: 'POST',
+      url: `${BASE_URL}${endpoint}`,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
+      },
+      data
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('LiteLLM API error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+// Completion function
+export async function completion(options: any = {}) {
+  console.log("LiteLLM completion called with model:", options.model);
+
+  const requestData = {
+    model: options.model || DEFAULT_MODEL,
+    messages: options.messages || [],
+    temperature: options.temperature || 0.7,
+    max_tokens: options.max_tokens || 1000,
+    stream: options.stream || false,
+    ...options
+  };
+
+  return makeRequest('/chat/completions', requestData);
+}
+
+// Embedding function
+export async function embedding(options: any = {}) {
+  console.log("LiteLLM embedding called with model:", options.model);
+
+  const requestData = {
+    model: options.model || 'text-embedding-ada-002',
+    input: options.input || '',
+    ...options
+  };
+
+  return makeRequest('/embeddings', requestData);
+}
+
+// For backward compatibility with code that uses the class-based approach
 export class LiteLLM {
+  private options: any;
+
   constructor(options: any = {}) {
-    // Mock constructor
+    this.options = options;
+    console.log("LiteLLM class initialized with model:", options.model || DEFAULT_MODEL);
   }
 
-  async completion(options: any = {}) {
-    // Mock completion method
-    return {
-      choices: [
-        {
-          message: {
-            content: "This is a mock response from LiteLLM",
-          },
-        },
-      ],
-    };
+  async chatCompletion(options: any = {}) {
+    return completion({
+      ...this.options,
+      ...options,
+    });
   }
 
   async embedding(options: any = {}) {
-    // Mock embedding method
-    return {
-      data: [
-        {
-          embedding: [0.1, 0.2, 0.3, 0.4, 0.5],
-        },
-      ],
-    };
+    return embedding({
+      ...this.options,
+      ...options,
+    });
   }
 }

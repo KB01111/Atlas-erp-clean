@@ -47,135 +47,130 @@ export default function AgentsPage() {
     }
   };
 
-  // Define Copilot hooks using useEffect to ensure they're only called once after component mounts
-  useEffect(() => {
-    // Make agents readable by the AI
-    useCopilotReadable({
-      description: "List of all AI agents in the system",
-      value: agents,
-    });
+  // Make agents readable by the AI - must be at the top level of the component
+  useCopilotReadable({
+    description: "List of all AI agents in the system",
+    value: agents,
+  });
 
-    // Run agent action for the AI
-    useCopilotAction({
-      name: "run_agent",
-      description: "Run a specific agent by ID or name",
-      parameters: [
-        {
-          name: "agentId",
-          type: "string",
-          description: "ID of the agent to run",
-          required: false,
-        },
-        {
-          name: "agentName",
-          type: "string",
-          description: "Name of the agent to run",
-          required: false,
-        },
-      ],
-      handler: async ({ agentId, agentName }) => {
-        let targetAgent;
-
-        if (agentId) {
-          targetAgent = agents.find(agent => agent.id === agentId);
-        } else if (agentName) {
-          targetAgent = agents.find(agent =>
-            agent.name.toLowerCase() === agentName.toLowerCase()
-          );
-        }
-
-        if (!targetAgent) {
-          return { success: false, message: "Agent not found" };
-        }
-
-        // Update agent status
-        const updatedAgents = agents.map(agent => {
-          if (agent.id === targetAgent!.id) {
-            return { ...agent, status: "running" as const };
-          }
-          return agent;
-        });
-
-        setAgents(updatedAgents);
-        setRunningAgentId(targetAgent.id);
-        setAgentOutput(`Running ${targetAgent.name}...\n\nInitializing...\n`);
-
-        // Simulate agent execution
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setAgentOutput(prev => prev + `\nAnalyzing data...\n`);
-
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setAgentOutput(prev => prev + `\nGenerating insights...\n`);
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setAgentOutput(prev => prev + `\nTask completed successfully!\n`);
-
-        // Update agent status to idle
-        const finalAgents = updatedAgents.map(agent => {
-          if (agent.id === targetAgent!.id) {
-            return {
-              ...agent,
-              status: "idle" as const,
-              lastRun: new Date().toLocaleString(),
-            };
-          }
-          return agent;
-        });
-
-        setAgents(finalAgents);
-        setRunningAgentId(null);
-
-        return {
-          success: true,
-          message: `${targetAgent.name} completed successfully`,
-          agent: targetAgent,
-        };
+  // Run agent action for the AI - must be at the top level of the component
+  useCopilotAction({
+    name: "run_agent",
+    description: "Run a specific agent by ID or name",
+    parameters: [
+      {
+        name: "agentId",
+        type: "string",
+        description: "ID of the agent to run",
+        required: false,
       },
-    });
-
-    // Get agent capabilities action for the AI
-    useCopilotAction({
-      name: "get_agent_capabilities",
-      description: "Get the capabilities of a specific agent",
-      parameters: [
-        {
-          name: "agentId",
-          type: "string",
-          description: "ID of the agent",
-          required: false,
-        },
-        {
-          name: "agentName",
-          type: "string",
-          description: "Name of the agent",
-          required: false,
-        },
-      ],
-      handler: async ({ agentId, agentName }) => {
-        let targetAgent;
-
-        if (agentId) {
-          targetAgent = agents.find(agent => agent.id === agentId);
-        } else if (agentName) {
-          targetAgent = agents.find(agent =>
-            agent.name.toLowerCase() === agentName.toLowerCase()
-          );
-        }
-
-        if (!targetAgent) {
-          return { success: false, message: "Agent not found" };
-        }
-
-        return {
-          success: true,
-          capabilities: targetAgent.capabilities,
-          agent: targetAgent,
-        };
+      {
+        name: "agentName",
+        type: "string",
+        description: "Name of the agent to run",
+        required: false,
       },
-    });
+    ],
+    handler: async ({ agentId, agentName }) => {
+      let targetAgent;
 
-    // No cleanup needed as we're not storing the disposers
-  }, [agents]); // Re-run when agents change
+      if (agentId) {
+        targetAgent = agents.find(agent => agent.id === agentId);
+      } else if (agentName) {
+        targetAgent = agents.find(agent =>
+          agent.name.toLowerCase() === agentName.toLowerCase()
+        );
+      }
+
+      if (!targetAgent) {
+        return { success: false, message: "Agent not found" };
+      }
+
+      // Update agent status
+      const updatedAgents = agents.map(agent => {
+        if (agent.id === targetAgent!.id) {
+          return { ...agent, status: "running" as const };
+        }
+        return agent;
+      });
+
+      setAgents(updatedAgents);
+      setRunningAgentId(targetAgent.id);
+      setAgentOutput(`Running ${targetAgent.name}...\n\nInitializing...\n`);
+
+      // Simulate agent execution
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setAgentOutput(prev => prev + `\nAnalyzing data...\n`);
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setAgentOutput(prev => prev + `\nGenerating insights...\n`);
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setAgentOutput(prev => prev + `\nTask completed successfully!\n`);
+
+      // Update agent status to idle
+      const finalAgents = updatedAgents.map(agent => {
+        if (agent.id === targetAgent!.id) {
+          return {
+            ...agent,
+            status: "idle" as const,
+            lastRun: new Date().toLocaleString(),
+          };
+        }
+        return agent;
+      });
+
+      setAgents(finalAgents);
+      setRunningAgentId(null);
+
+      return {
+        success: true,
+        message: `${targetAgent.name} completed successfully`,
+        agent: targetAgent,
+      };
+    },
+  });
+
+  // Get agent capabilities action for the AI - must be at the top level of the component
+  useCopilotAction({
+    name: "get_agent_capabilities",
+    description: "Get the capabilities of a specific agent",
+    parameters: [
+      {
+        name: "agentId",
+        type: "string",
+        description: "ID of the agent",
+        required: false,
+      },
+      {
+        name: "agentName",
+        type: "string",
+        description: "Name of the agent",
+        required: false,
+      },
+    ],
+    handler: async ({ agentId, agentName }) => {
+      let targetAgent;
+
+      if (agentId) {
+        targetAgent = agents.find(agent => agent.id === agentId);
+      } else if (agentName) {
+        targetAgent = agents.find(agent =>
+          agent.name.toLowerCase() === agentName.toLowerCase()
+        );
+      }
+
+      if (!targetAgent) {
+        return { success: false, message: "Agent not found" };
+      }
+
+      return {
+        success: true,
+        capabilities: targetAgent.capabilities,
+        agent: targetAgent,
+      };
+    },
+  });
 
   const toggleAgentExpansion = (id: string) => {
     if (expandedAgentId === id) {

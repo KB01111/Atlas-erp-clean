@@ -34,7 +34,8 @@ export const MagicCard = memo(function MagicCard({
   gradientTo = "#FE8BBB",
   focus = false,
   glare = false,
-  glareSize = 0.4,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  glareSize = 0.4, // Kept for API compatibility
   glareOpacity = 0.2,
   glarePosition = "all",
   glareColor = "rgba(255, 255, 255, 0.5)",
@@ -59,6 +60,19 @@ export const MagicCard = memo(function MagicCard({
   // Adjust gradient size based on device capability
   const effectiveGradientSize = isLowEndDevice ? gradientSize * 0.7 : gradientSize;
 
+  // Create motion templates at the top level of the component
+  const borderGradientTemplate = useMotionTemplate`
+    radial-gradient(${effectiveGradientSize}px circle at ${mouseX}px ${mouseY}px,
+    ${gradientFrom},
+    ${gradientTo},
+    var(--border) 100%
+    )
+  `;
+
+  const innerGradientTemplate = useMotionTemplate`
+    radial-gradient(${effectiveGradientSize}px circle at ${mouseX}px ${mouseY}px, ${gradientColor}, transparent 100%)
+  `;
+
   // Set up viewport detection
   useEffect(() => {
     if (cardRef.current) {
@@ -66,8 +80,10 @@ export const MagicCard = memo(function MagicCard({
     }
 
     return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
+      // Store the current value of rafRef to avoid the React Hook dependency warning
+      const currentRaf = rafRef.current;
+      if (currentRaf) {
+        cancelAnimationFrame(currentRaf);
       }
     };
   }, [observeElement]);
@@ -166,13 +182,7 @@ export const MagicCard = memo(function MagicCard({
         <motion.div
           className="pointer-events-none absolute inset-0 rounded-[inherit] bg-border opacity-0 duration-300 group-hover:opacity-100"
           style={{
-            background: useMotionTemplate`
-            radial-gradient(${effectiveGradientSize}px circle at ${mouseX}px ${mouseY}px,
-            ${gradientFrom},
-            ${gradientTo},
-            var(--border) 100%
-            )
-            `,
+            background: borderGradientTemplate,
           }}
         />
       )}
@@ -185,9 +195,7 @@ export const MagicCard = memo(function MagicCard({
         <motion.div
           className="pointer-events-none absolute inset-px rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           style={{
-            background: useMotionTemplate`
-              radial-gradient(${effectiveGradientSize}px circle at ${mouseX}px ${mouseY}px, ${gradientColor}, transparent 100%)
-            `,
+            background: innerGradientTemplate,
             opacity: gradientOpacity,
           }}
         />

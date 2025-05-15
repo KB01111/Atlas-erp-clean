@@ -1,0 +1,275 @@
+version: '3.8'
+
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: atlas-erp-app
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - SURREAL_URL=http://surrealdb:8000
+      - SURREAL_NS=${SURREAL_NS:-atlas}
+      - SURREAL_DB=${SURREAL_DB:-erp}
+      - SURREAL_USER=${SURREAL_USER:-root}
+      - SURREAL_PASS=${SURREAL_PASS:-root}
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - MINIO_BUCKET=${MINIO_BUCKET:-atlas-erp}
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_NAMESPACE=${TEMPORAL_NAMESPACE:-default}
+      - ARANGO_URL=http://arangodb:8529
+      - ARANGO_DB=${ARANGO_DB:-atlas_knowledge}
+      - ARANGO_USER=${ARANGO_USER:-root}
+      - ARANGO_PASS=${ARANGO_PASS:-atlas}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o}
+      - COPILOTKIT_API_KEY=${COPILOTKIT_API_KEY}
+      - PIPEDREAM_API_KEY=${PIPEDREAM_API_KEY}
+      - PIPEDREAM_API_URL=${PIPEDREAM_API_URL:-https://api.pipedream.com/v1}
+      - PIPEDREAM_ORG_ID=${PIPEDREAM_ORG_ID}
+      - PIPEDREAM_WORKSPACE_ID=${PIPEDREAM_WORKSPACE_ID}
+      - NANGO_API_URL=${NANGO_API_URL:-https://api.nango.dev}
+      - NANGO_SECRET_KEY=${NANGO_SECRET_KEY}
+      - NANGO_PUBLIC_KEY=${NANGO_PUBLIC_KEY}
+      - NODE_ENV=production
+      - DOCKER_COMPOSE=true
+    depends_on:
+      - surrealdb
+      - arangodb
+      - minio
+      - temporal
+      - postgres
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - atlas-network
+
+  # SurrealDB - Database
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: atlas-erp-surrealdb
+    command: start --user ${SURREAL_USER:-root} --pass ${SURREAL_PASS:-root} --bind 0.0.0.0:8000 --log info memory
+    ports:
+      - "8001:8000"
+    volumes:
+      - surreal-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - atlas-network
+
+  # ArangoDB - Knowledge Graph Database
+  arangodb:
+    image: arangodb:3.11
+    container_name: atlas-erp-arangodb
+    environment:
+      - ARANGO_ROOT_PASSWORD=${ARANGO_ROOT_PASSWORD:-atlas}
+    ports:
+      - "8529:8529"
+    volumes:
+      - arango-data:/var/lib/arangodb3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8529/_api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - atlas-network
+
+  # MinIO - Object Storage
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: atlas-erp-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - atlas-network
+
+  # Create MinIO bucket
+  minio-setup:
+    image: minio/mc:latest
+    container_name: atlas-erp-minio-setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ACCESS_KEY:-minioadmin} ${MINIO_SECRET_KEY:-minioadmin};
+      /usr/bin/mc mb myminio/${MINIO_BUCKET:-atlas-erp} || true;
+      /usr/bin/mc policy set download myminio/${MINIO_BUCKET:-atlas-erp};
+      exit 0;
+      "
+    networks:
+      - atlas-network
+
+  # PostgreSQL for Temporal
+  postgres:
+    image: postgres:13
+    container_name: atlas-erp-postgres
+    environment:
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=temporal
+      - POSTGRES_DB=temporal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - atlas-network
+
+  # Temporal - Workflow Engine
+  temporal:
+    image: temporalio/auto-setup:1.22.4
+    container_name: atlas-erp-temporal
+    depends_on:
+      - postgres
+    ports:
+      - "7233:7233"
+      - "8000:8000" # Prometheus metrics endpoint
+    environment:
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgres
+      - PROMETHEUS_ENDPOINT=0.0.0.0:8000
+    volumes:
+      - ./config/dynamicconfig:/etc/temporal/config/dynamicconfig
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7233/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - atlas-network
+
+  # Temporal Web UI
+  temporal-ui:
+    image: temporalio/ui:2.25.0
+    container_name: atlas-erp-temporal-ui
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8088:8080"
+    depends_on:
+      - temporal
+      - postgres
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - atlas-network
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:v2.37.0
+    container_name: atlas-erp-prometheus
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    depends_on:
+      - temporal
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - atlas-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:9.5.0
+    container_name: atlas-erp-grafana
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - atlas-network
+
+volumes:
+  minio-data:
+  temporal-data:
+  surreal-data:
+  arango-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  atlas-network:
+    driver: bridge
