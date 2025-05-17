@@ -1,6 +1,6 @@
 import * as surrealDB from './surreal-client';
 import { getLLMSettings } from './llm-settings';
-import litellm from 'litellm';
+import { embedding } from 'litellm';
 
 /**
  * Interface for vector embedding results
@@ -35,14 +35,13 @@ export async function createVectorEmbedding(
     // Get LLM settings
     const llmSettings = await getLLMSettings();
 
-    // Set the API key for LiteLLM
-    litellm.apiKey = llmSettings.apiKey;
     const embeddingModel = 'text-embedding-ada-002'; // Use a default embedding model
 
     // Generate embeddings
-    const embeddingResponse = await litellm.embedding({
+    const embeddingResponse = await embedding({
       model: embeddingModel,
       input: text,
+      api_key: llmSettings.apiKey,
     });
 
     if (!embeddingResponse.data || embeddingResponse.data.length === 0) {
@@ -86,14 +85,13 @@ export async function searchDocumentsByVector(
     // Get LLM settings
     const llmSettings = await getLLMSettings();
 
-    // Set the API key for LiteLLM
-    litellm.apiKey = llmSettings.apiKey;
     const embeddingModel = 'text-embedding-ada-002'; // Use a default embedding model
 
     // Generate embeddings for the query
-    const embeddingResponse = await litellm.embedding({
+    const embeddingResponse = await embedding({
       model: embeddingModel,
       input: query,
+      api_key: llmSettings.apiKey,
     });
 
     if (!embeddingResponse.data || embeddingResponse.data.length === 0) {

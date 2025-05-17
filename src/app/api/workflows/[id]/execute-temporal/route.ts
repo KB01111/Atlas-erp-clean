@@ -6,18 +6,18 @@ import { executeTemporalWorkflow } from '@/lib/temporal-workflow-service';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
-    
+
     // Execute the workflow
     const executionState = await executeTemporalWorkflow(
       id,
       body.input || {}
     );
-    
+
     return NextResponse.json({
       execution: executionState,
     });

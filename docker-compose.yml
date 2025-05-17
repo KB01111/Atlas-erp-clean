@@ -29,6 +29,7 @@ services:
       - LLM_PROVIDER=${LLM_PROVIDER:-openai}
       - LLM_API_KEY=${LLM_API_KEY:-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}
       - LLM_MODEL=${LLM_MODEL:-gpt-4o}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-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}
       - COPILOTKIT_API_KEY=${COPILOTKIT_API_KEY:-ck_pub_4e87be87ce5fcbc54805a9597fd74013}
       - PIPEDREAM_API_KEY=${PIPEDREAM_API_KEY:-}
       - PIPEDREAM_API_URL=${PIPEDREAM_API_URL:-https://api.pipedream.com/v1}
@@ -175,6 +176,8 @@ services:
       - POSTGRES_PWD=temporal
       - POSTGRES_SEEDS=postgres
       - PROMETHEUS_ENDPOINT=0.0.0.0:8000
+      - TEMPORAL_CLI_ADDRESS=0.0.0.0:7233
+      - SERVICES=frontend,history,matching,worker
     volumes:
       - ./config/dynamicconfig:/etc/temporal/config/dynamicconfig
     healthcheck:
@@ -194,6 +197,7 @@ services:
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+      - TEMPORAL_UI_PORT=8080
     ports:
       - "8088:8080"
     depends_on:

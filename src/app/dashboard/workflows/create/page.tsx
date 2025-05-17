@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { useCopilotReadable } from "@copilotkit/react-core";
 import { ArrowLeft, Save } from "lucide-react";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { WorkflowNode, WorkflowEdge } from "@/lib/workflow-service";
 import dynamic from "next/dynamic";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { LoadingState } from "@/components/ui/loading-state";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
 
 // Dynamically import the WorkflowBuilder component with SSR disabled
 const WorkflowBuilder = dynamic(
@@ -114,21 +116,23 @@ export default function CreateWorkflowPage() {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center mb-8">
-        <button
+    <div className="space-y-6">
+      <div className="flex items-center mb-4">
+        <EnhancedButton
+          variant="ghost"
+          size="icon"
           onClick={() => router.push("/dashboard/workflows")}
-          className="mr-4 p-2 rounded-full hover:bg-muted"
+          className="mr-4 h-10 w-10"
         >
           <ArrowLeft size={20} />
-        </button>
+        </EnhancedButton>
         <div>
           <AnimatedGradientText
             text="Create Workflow"
             className="text-3xl font-bold"
             gradient="linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899)"
           />
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-1">
             Create a new AI automation workflow
           </p>
         </div>
@@ -143,32 +147,34 @@ export default function CreateWorkflowPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter workflow name"
-              />
-            </div>
+        <EnhancedCard className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+                  placeholder="Enter workflow name"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary h-32"
-                placeholder="Enter workflow description"
-              ></textarea>
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary h-32 bg-background"
+                  placeholder="Enter workflow description"
+                ></textarea>
+              </div>
             </div>
           </div>
-        </div>
+        </EnhancedCard>
 
-        <div className="border border-input rounded-lg p-4 mb-6">
+        <EnhancedCard className="p-6">
           <h3 className="text-lg font-semibold mb-4">Workflow Builder</h3>
           <div className="h-[600px]">
             <WorkflowBuilder
@@ -185,21 +191,21 @@ export default function CreateWorkflowPage() {
               }}
             />
           </div>
-        </div>
+        </EnhancedCard>
 
         <div className="flex justify-end gap-3">
-          <button
+          <EnhancedButton
             type="button"
+            variant="outline"
             onClick={() => router.push("/dashboard/workflows")}
-            className="px-4 py-2 border border-input rounded-md"
           >
             Cancel
-          </button>
-          <ShimmerButton
+          </EnhancedButton>
+          <EnhancedActionButton
             type="submit"
             disabled={loading}
             className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground"
-          >
+           variant="default" size="sm" hover="lift">
             {loading ? (
               <span className="flex items-center gap-2">
                 <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
@@ -211,7 +217,7 @@ export default function CreateWorkflowPage() {
                 Save Workflow
               </span>
             )}
-          </ShimmerButton>
+          </EnhancedActionButton>
         </div>
       </form>
     </div>

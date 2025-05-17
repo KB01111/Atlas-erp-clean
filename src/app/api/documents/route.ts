@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
-    
+
     // Query to get documents with pagination
     const query = `
       SELECT * FROM documents
@@ -20,26 +20,34 @@ export async function GET(request: NextRequest) {
       LIMIT $limit
       START $offset
     `;
-    
+
     // Execute the query
-    const result = await surrealDB.query<{ result: any[] }>(query, { limit, offset });
-    
+    const result = await surrealDB.query<{ result: unknown[] }>(query, { limit, offset });
+
     if (!result || !result.result || !Array.isArray(result.result)) {
       return NextResponse.json({ documents: [] });
     }
-    
+
+    // Define the document type
+    interface Document {
+      objectName: string;
+      [key: string]: unknown;
+    }
+
     // Generate fresh URLs for each document
     const documents = await Promise.all(
       result.result.map(async (doc) => {
+        // Cast doc to Document type with objectName
+        const document = doc as Document;
         // Generate a fresh URL that's valid for 24 hours
-        const freshUrl = await getFileUrl(doc.objectName);
+        const freshUrl = await getFileUrl(document.objectName);
         return {
-          ...doc,
+          ...document,
           url: freshUrl,
         };
       })
     );
-    
+
     return NextResponse.json({ documents });
   } catch (error) {
     console.error('Error listing documents:', error);
@@ -56,34 +64,46 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { id } = await request.json();
-    
+
     if (!id) {
       return NextResponse.json(
         { error: 'Document ID is required' },
         { status: 400 }
       );
     }
-    
+
     // Get the document to retrieve the objectName
     const document = await surrealDB.select('documents', id);
-    
+
     if (!document || document.length === 0) {
       return NextResponse.json(
         { error: 'Document not found' },
         { status: 404 }
       );
     }
-    
-    // Delete from MinIO
-    const { objectName } = document[0];
-    if (objectName) {
-      const minioClient = (await import('@/lib/minio-client')).default;
-      await minioClient.deleteFile(objectName);
+
+    // Define the document type
+    interface Document {
+      objectName?: string;
+      [key: string]: unknown;
     }
-    
+
+    // Define the document type
+    interface Document {
+      objectName?: string;
+      [key: string]: unknown;
+    }
+
+    // Delete from MinIO
+    const doc = document[0] as Document;
+    if (doc && doc.objectName) {
+      const minioClient = (await import('@/lib/minio-client')).default;
+      await minioClient.deleteFile(doc.objectName);
+    }
+
     // Delete from SurrealDB
     await surrealDB.remove('documents', id);
-    
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting document:', error);

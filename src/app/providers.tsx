@@ -12,6 +12,9 @@ interface ProvidersProps {
 }
 
 export function Providers({ children }: ProvidersProps) {
+  // Initialize theme on client side - this is now handled by next-themes
+  // We don't need to manually set the data-theme attribute anymore
+
   return (
     <ThemeProvider
       attribute="class"
@@ -21,6 +24,10 @@ export function Providers({ children }: ProvidersProps) {
       enableColorScheme={false}
       // Disable theme effect until after hydration to avoid mismatch
       disableTransitionOnChange
+      // Store theme preference in localStorage
+      storageKey="theme"
+      // Use light theme for SSR to ensure consistent rendering
+      value={{ light: 'light', dark: 'dark', system: 'system' }}
     >
       <RateLimitProvider>
         <ErrorBoundary

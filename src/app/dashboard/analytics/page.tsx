@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { useCopilotReadable } from "@copilotkit/react-core";
+import { useCopilotReadable, useCopilotAction } from "@copilotkit/react-core";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { NumberTicker } from "@/components/ui/number-ticker";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { NumberDisplay } from "@/components/ui/number-display";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingState } from "@/components/ui/loading-state";
+import {
+  BarChart3, LineChart as LineChartIcon, PieChart, ArrowUpRight, ArrowDownRight,
+  Download, Calendar, Filter, RefreshCw, Settings, Info, HelpCircle,
+  DollarSign, Users, TrendingUp, Package
+} from "lucide-react";
+import { useRateLimit } from "@/context/RateLimitContext";
 
 // Sample data for charts
 const revenueData = [
@@ -51,91 +62,329 @@ export default function AnalyticsPage() {
   const [totalProfit, setTotalProfit] = useState(0);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [averageGrowth, setAverageGrowth] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'quarter' | 'year'>('month');
+  const [showExport, setShowExport] = useState(false);
+  const { throttle } = useRateLimit();
 
-  // Calculate summary metrics
+  // Function to fetch analytics data
+  const fetchAnalyticsData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // In a real app, you would fetch this data from an API
+      // For now, we'll simulate a delay and use the static data
+      await throttle('analytics-refresh', async () => {
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // Calculate total revenue and profit
+        const revTotal = revenueData.reduce((sum, item) => sum + item.revenue, 0);
+        const profitTotal = revenueData.reduce((sum, item) => sum + item.profit, 0);
+
+        // Get latest customer count
+        const customers = customerData[customerData.length - 1].activeCustomers;
+
+        // Calculate average product growth
+        const avgGrowth = productData.reduce((sum, item) => sum + item.growth, 0) / productData.length;
+
+        setTotalRevenue(revTotal);
+        setTotalProfit(profitTotal);
+        setTotalCustomers(customers);
+        setAverageGrowth(avgGrowth);
+      }, 5000);
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+      setError('Failed to fetch analytics data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [throttle]);
+
+  // Fetch data on component mount
   useEffect(() => {
-    // Calculate total revenue and profit
-    const revTotal = revenueData.reduce((sum, item) => sum + item.revenue, 0);
-    const profitTotal = revenueData.reduce((sum, item) => sum + item.profit, 0);
-    
-    // Get latest customer count
-    const customers = customerData[customerData.length - 1].activeCustomers;
-    
-    // Calculate average product growth
-    const avgGrowth = productData.reduce((sum, item) => sum + item.growth, 0) / productData.length;
-    
-    setTotalRevenue(revTotal);
-    setTotalProfit(profitTotal);
-    setTotalCustomers(customers);
-    setAverageGrowth(avgGrowth);
-  }, []);
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
 
   // Make analytics data readable by CopilotKit
   useCopilotReadable({
     name: "financial_analytics",
     description: "Financial analytics data including revenue, expenses, and profit",
-    value: revenueData,
+    value: {
+      data: revenueData,
+      summary: {
+        totalRevenue,
+        totalProfit,
+        timeRange,
+      }
+    },
   });
 
   useCopilotReadable({
     name: "customer_analytics",
     description: "Customer analytics data including new customers, active customers, and churn rate",
-    value: customerData,
+    value: {
+      data: customerData,
+      summary: {
+        totalCustomers,
+        timeRange,
+      }
+    },
   });
 
   useCopilotReadable({
     name: "product_analytics",
     description: "Product analytics data including sales and growth",
-    value: productData,
+    value: {
+      data: productData,
+      summary: {
+        averageGrowth,
+        timeRange,
+      }
+    },
+  });
+
+  // Export analytics data as CSV
+  const exportAnalyticsData = useCallback(() => {
+    try {
+      // Create CSV content
+      const csvContent = [
+        // Headers
+        ['Month', 'Revenue', 'Expenses', 'Profit', 'New Customers', 'Active Customers', 'Churn Rate'].join(','),
+        // Data rows
+        ...revenueData.map((item, index) => [
+          item.month,
+          item.revenue,
+          item.expenses,
+          item.profit,
+          customerData[index]?.newCustomers || '',
+          customerData[index]?.activeCustomers || '',
+          customerData[index]?.churnRate || '',
+        ].join(','))
+      ].join('\n');
+
+      // Create a blob and download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `analytics-export-${new Date().toISOString().slice(0, 10)}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      setError('Failed to export data');
+    }
+  }, []);
+
+  // Register the export action with CopilotKit
+  useCopilotAction({
+    name: "export_analytics_data",
+    description: "Export analytics data as CSV",
+    parameters: [],
+    handler: async () => {
+      exportAnalyticsData();
+      return "Analytics data exported successfully";
+    },
   });
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-        <div className="text-sm text-gray-500">Last updated: {new Date().toLocaleDateString()}</div>
+      {/* Header with title, time range selector, and actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            Financial and business performance metrics
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Time range selector */}
+          <div className="flex items-center bg-muted rounded-md p-1 mr-2">
+            <button
+              onClick={() => setTimeRange('day')}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === 'day' ? 'bg-card shadow-sm' : ''}`}
+            >
+              Day
+            </button>
+            <button
+              onClick={() => setTimeRange('week')}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === 'week' ? 'bg-card shadow-sm' : ''}`}
+            >
+              Week
+            </button>
+            <button
+              onClick={() => setTimeRange('month')}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === 'month' ? 'bg-card shadow-sm' : ''}`}
+            >
+              Month
+            </button>
+            <button
+              onClick={() => setTimeRange('quarter')}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === 'quarter' ? 'bg-card shadow-sm' : ''}`}
+            >
+              Quarter
+            </button>
+            <button
+              onClick={() => setTimeRange('year')}
+              className={`px-3 py-1 text-sm rounded-md ${timeRange === 'year' ? 'bg-card shadow-sm' : ''}`}
+            >
+              Year
+            </button>
+          </div>
+
+          {/* Export button */}
+          <EnhancedButton
+            variant="outline"
+            size="sm"
+            onClick={exportAnalyticsData}
+            className="flex items-center gap-1"
+          >
+            <Download size={16} />
+            <span>Export</span>
+          </EnhancedButton>
+
+          {/* Refresh button */}
+          <EnhancedButton
+            variant="outline"
+            size="icon"
+            onClick={fetchAnalyticsData}
+            disabled={isLoading}
+            className="h-9 w-9"
+          >
+            <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
+          </EnhancedButton>
+        </div>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <ErrorMessage
+          message={error}
+          variant="error"
+          size="sm"
+        />
+      )}
+
+      {/* Loading state */}
+      {isLoading && (
+        <div className="absolute top-4 right-4 bg-primary/10 text-primary text-sm px-3 py-1 rounded-md flex items-center gap-2">
+          <RefreshCw size={14} className="animate-spin" />
+          <span>Updating...</span>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <SummaryCard 
-          title="Total Revenue" 
-          value={totalRevenue} 
-          prefix="$" 
-          change={12.5} 
-          gradient="linear-gradient(to right, #3b82f6, #2563eb)"
-        />
-        <SummaryCard 
-          title="Total Profit" 
-          value={totalProfit} 
-          prefix="$" 
-          change={18.3} 
-          gradient="linear-gradient(to right, #10b981, #059669)"
-        />
-        <SummaryCard 
-          title="Active Customers" 
-          value={totalCustomers} 
-          change={9.7} 
-          gradient="linear-gradient(to right, #8b5cf6, #7c3aed)"
-        />
-        <SummaryCard 
-          title="Avg. Product Growth" 
-          value={averageGrowth} 
-          suffix="%" 
-          change={2.1} 
-          gradient="linear-gradient(to right, #f59e0b, #d97706)"
-        />
+        <EnhancedCard interactive hoverEffect="lift" className="overflow-hidden">
+          <div className="p-6 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-muted-foreground text-sm font-medium">Total Revenue</h3>
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full">
+                <DollarSign size={18} className="text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <AnimatedGradientText
+                text={`$${Math.round(totalRevenue).toLocaleString()}`}
+                className="text-2xl font-bold"
+                gradient="linear-gradient(to right, #3b82f6, #2563eb)"
+              />
+            </div>
+            <div className="mt-2 flex items-center text-sm text-green-600">
+              <ArrowUpRight size={16} className="mr-1" />
+              <span className="font-medium">12.5%</span>
+              <span className="ml-2 text-muted-foreground">vs last period</span>
+            </div>
+          </div>
+        </EnhancedCard>
+
+        <EnhancedCard interactive hoverEffect="lift" className="overflow-hidden">
+          <div className="p-6 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-muted-foreground text-sm font-medium">Total Profit</h3>
+              <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full">
+                <TrendingUp size={18} className="text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <AnimatedGradientText
+                text={`$${Math.round(totalProfit).toLocaleString()}`}
+                className="text-2xl font-bold"
+                gradient="linear-gradient(to right, #10b981, #059669)"
+              />
+            </div>
+            <div className="mt-2 flex items-center text-sm text-green-600">
+              <ArrowUpRight size={16} className="mr-1" />
+              <span className="font-medium">18.3%</span>
+              <span className="ml-2 text-muted-foreground">vs last period</span>
+            </div>
+          </div>
+        </EnhancedCard>
+
+        <EnhancedCard interactive hoverEffect="lift" className="overflow-hidden">
+          <div className="p-6 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-muted-foreground text-sm font-medium">Active Customers</h3>
+              <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full">
+                <Users size={18} className="text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <AnimatedGradientText
+                text={totalCustomers.toLocaleString()}
+                className="text-2xl font-bold"
+                gradient="linear-gradient(to right, #8b5cf6, #7c3aed)"
+              />
+            </div>
+            <div className="mt-2 flex items-center text-sm text-green-600">
+              <ArrowUpRight size={16} className="mr-1" />
+              <span className="font-medium">9.7%</span>
+              <span className="ml-2 text-muted-foreground">vs last period</span>
+            </div>
+          </div>
+        </EnhancedCard>
+
+        <EnhancedCard interactive hoverEffect="lift" className="overflow-hidden">
+          <div className="p-6 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-muted-foreground text-sm font-medium">Avg. Product Growth</h3>
+              <div className="bg-amber-100 dark:bg-amber-900/30 p-2 rounded-full">
+                <Package size={18} className="text-amber-600 dark:text-amber-400" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <AnimatedGradientText
+                text={`${averageGrowth.toFixed(1)}%`}
+                className="text-2xl font-bold"
+                gradient="linear-gradient(to right, #f59e0b, #d97706)"
+              />
+            </div>
+            <div className="mt-2 flex items-center text-sm text-green-600">
+              <ArrowUpRight size={16} className="mr-1" />
+              <span className="font-medium">2.1%</span>
+              <span className="ml-2 text-muted-foreground">vs last period</span>
+            </div>
+          </div>
+        </EnhancedCard>
       </div>
 
       {/* Revenue Chart */}
-      <ShineBorder
-        borderColor="rgba(59, 130, 246, 0.2)"
-        shineBorderColor="rgba(59, 130, 246, 0.6)"
-        borderRadius="0.75rem"
-        className="p-0.5"
-      >
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Revenue & Profit</h2>
+      <EnhancedCard className="overflow-hidden">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <LineChartIcon className="text-primary" size={20} />
+              <h2 className="text-xl font-semibold">Revenue & Profit</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <HelpCircle size={16} className="text-muted-foreground cursor-help" title="Shows revenue, expenses, and profit over time" />
+            </div>
+          </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -151,18 +400,21 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
         </div>
-      </ShineBorder>
+      </EnhancedCard>
 
       {/* Customer Growth and Product Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ShineBorder
-          borderColor="rgba(139, 92, 246, 0.2)"
-          shineBorderColor="rgba(139, 92, 246, 0.6)"
-          borderRadius="0.75rem"
-          className="p-0.5"
-        >
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Customer Growth</h2>
+        <EnhancedCard className="overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Users className="text-purple-600" size={20} />
+                <h2 className="text-xl font-semibold">Customer Growth</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <HelpCircle size={16} className="text-muted-foreground cursor-help" title="Shows new customers, active customers, and churn rate over time" />
+              </div>
+            </div>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={customerData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -179,16 +431,19 @@ export default function AnalyticsPage() {
               </ResponsiveContainer>
             </div>
           </div>
-        </ShineBorder>
+        </EnhancedCard>
 
-        <ShineBorder
-          borderColor="rgba(245, 158, 11, 0.2)"
-          shineBorderColor="rgba(245, 158, 11, 0.6)"
-          borderRadius="0.75rem"
-          className="p-0.5"
-        >
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Product Performance</h2>
+        <EnhancedCard className="overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="text-amber-600" size={20} />
+                <h2 className="text-xl font-semibold">Product Performance</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <HelpCircle size={16} className="text-muted-foreground cursor-help" title="Shows sales and growth by product" />
+              </div>
+            </div>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={productData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -204,51 +459,78 @@ export default function AnalyticsPage() {
               </ResponsiveContainer>
             </div>
           </div>
-        </ShineBorder>
+        </EnhancedCard>
       </div>
     </div>
   );
 }
 
-// Summary Card Component
-function SummaryCard({ 
-  title, 
-  value, 
-  prefix = "", 
-  suffix = "", 
-  change, 
-  gradient 
-}: { 
-  title: string; 
-  value: number; 
-  prefix?: string; 
-  suffix?: string; 
-  change: number; 
-  gradient: string; 
-}) {
+// Enhanced Summary Card Component
+interface SummaryCardProps {
+  title: string;
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  change: number;
+  gradient: string;
+  icon?: React.ReactNode;
+  description?: string;
+  loading?: boolean;
+}
+
+function SummaryCard({
+  title,
+  value,
+  prefix = "",
+  suffix = "",
+  change,
+  gradient,
+  icon,
+  description,
+  loading = false
+}: SummaryCardProps) {
   return (
-    <ShineBorder
-      borderColor="rgba(209, 213, 219, 0.2)"
-      shineBorderColor="rgba(209, 213, 219, 0.6)"
-      borderRadius="0.75rem"
-      className="p-0.5"
-    >
-      <div className="bg-white p-6 rounded-xl shadow-sm h-full">
-        <h3 className="text-gray-500 text-sm font-medium">{title}</h3>
-        <div className="mt-2 flex items-baseline">
-          <AnimatedGradientText
-            text={`${prefix}${Math.round(value).toLocaleString()}${suffix}`}
-            className="text-2xl font-bold"
-            gradient={gradient}
-          />
+    <EnhancedCard interactive hoverEffect="lift" className="overflow-hidden">
+      <div className="p-6 flex flex-col h-full">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-muted-foreground text-sm font-medium">{title}</h3>
+          {icon && (
+            <div className="bg-primary/10 dark:bg-primary/20 p-2 rounded-full">
+              {icon}
+            </div>
+          )}
         </div>
+
+        {description && (
+          <p className="text-xs text-muted-foreground mb-2">{description}</p>
+        )}
+
+        <div className="mt-2">
+          {loading ? (
+            <div className="h-8 w-32 bg-muted animate-pulse rounded"></div>
+          ) : (
+            <AnimatedGradientText
+              text={`${prefix}${Math.round(value).toLocaleString()}${suffix}`}
+              className="text-2xl font-bold"
+              gradient={gradient}
+            />
+          )}
+        </div>
+
         <div className={`mt-2 flex items-center text-sm ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-          <span className="font-medium">
-            {change >= 0 ? '↑' : '↓'} {Math.abs(change)}%
-          </span>
-          <span className="ml-2 text-gray-500">vs last period</span>
+          {loading ? (
+            <div className="h-4 w-16 bg-muted animate-pulse rounded"></div>
+          ) : (
+            <>
+              {change >= 0 ? <ArrowUpRight size={16} className="mr-1" /> : <ArrowDownRight size={16} className="mr-1" />}
+              <span className="font-medium">
+                {Math.abs(change)}%
+              </span>
+              <span className="ml-2 text-muted-foreground">vs last period</span>
+            </>
+          )}
         </div>
       </div>
-    </ShineBorder>
+    </EnhancedCard>
   );
 }

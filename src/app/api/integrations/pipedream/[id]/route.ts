@@ -4,15 +4,15 @@ import { isServiceAvailable, mockPipedream } from "@/lib/mock-service-provider";
 
 /**
  * GET /api/integrations/pipedream/[id]
- * 
+ *
  * Retrieves a specific Pipedream workflow or source by ID
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const type = req.nextUrl.searchParams.get("type") || "workflow";
 
     if (!id) {
@@ -74,6 +74,14 @@ export async function GET(
     // Get workflow or source from Pipedream API
     let result;
 
+    // Ensure client is defined
+    if (!client) {
+      return NextResponse.json(
+        { error: "Pipedream client is not available" },
+        { status: 500 }
+      );
+    }
+
     if (type === "workflow") {
       result = await client.getWorkflow(id);
     } else if (type === "source") {
@@ -107,15 +115,15 @@ export async function GET(
 
 /**
  * PUT /api/integrations/pipedream/[id]
- * 
+ *
  * Updates a specific Pipedream workflow or source
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const body = await req.json();
     const { type, data } = body;
 
@@ -178,6 +186,14 @@ export async function PUT(
     // Update workflow or source using Pipedream API
     let result;
 
+    // Ensure client is defined
+    if (!client) {
+      return NextResponse.json(
+        { error: "Pipedream client is not available" },
+        { status: 500 }
+      );
+    }
+
     if (type === "workflow") {
       result = await client.updateWorkflow(id, data);
     } else if (type === "source") {
@@ -211,15 +227,15 @@ export async function PUT(
 
 /**
  * DELETE /api/integrations/pipedream/[id]
- * 
+ *
  * Deletes a specific Pipedream workflow or source
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const type = req.nextUrl.searchParams.get("type") || "workflow";
 
     if (!id) {
@@ -255,9 +271,9 @@ export async function DELETE(
       let result;
 
       if (type === "workflow") {
-        result = await mockPipedream.deleteWorkflow(id);
+        result = await mockPipedream.deleteWorkflow();
       } else if (type === "source") {
-        result = await mockPipedream.deleteSource(id);
+        result = await mockPipedream.deleteSource();
       } else {
         return NextResponse.json(
           { error: "Invalid type. Must be 'workflow' or 'source'" },
@@ -272,6 +288,15 @@ export async function DELETE(
     }
 
     // Delete workflow or source using Pipedream API
+
+    // Ensure client is defined
+    if (!client) {
+      return NextResponse.json(
+        { error: "Pipedream client is not available" },
+        { status: 500 }
+      );
+    }
+
     if (type === "workflow") {
       await client.deleteWorkflow(id);
     } else if (type === "source") {

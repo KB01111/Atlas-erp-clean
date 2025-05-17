@@ -3,8 +3,8 @@
 import { useCopilotReadable, useCopilotAction } from "@copilotkit/react-core";
 import Link from "next/link";
 import NangoConnections from "@/components/NangoConnections";
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { ArrowRight, Database, Workflow, Bot, ExternalLink } from 'lucide-react';
@@ -54,8 +54,8 @@ export default function IntegrationsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {/* Pipedream Integration Card */}
         <Link href="/dashboard/integrations/pipedream">
-          <MagicCard className="h-full">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+          <EnhancedCard className="h-full" interactive hoverEffect="lift">
+            <BorderContainer variant="primary" rounded="xl" className="p-0.5 h-full">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-6 h-full flex flex-col">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="bg-indigo-100 p-3 rounded-full">
@@ -73,13 +73,13 @@ export default function IntegrationsPage() {
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
         </Link>
 
         {/* Data Sources Card */}
-        <MagicCard className="h-full">
-          <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+        <EnhancedCard className="h-full" interactive hoverEffect="lift">
+          <BorderContainer variant="primary" rounded="xl" className="p-0.5 h-full">
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-6 h-full flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-emerald-100 p-3 rounded-full">
@@ -96,12 +96,12 @@ export default function IntegrationsPage() {
                 Coming Soon
               </div>
             </div>
-          </ShineBorder>
-        </MagicCard>
+          </BorderContainer>
+        </EnhancedCard>
 
         {/* AI Services Card */}
-        <MagicCard className="h-full">
-          <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+        <EnhancedCard className="h-full" interactive hoverEffect="lift">
+          <BorderContainer variant="primary" rounded="xl" className="p-0.5 h-full">
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-6 h-full flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-purple-100 p-3 rounded-full">
@@ -118,8 +118,8 @@ export default function IntegrationsPage() {
                 Coming Soon
               </div>
             </div>
-          </ShineBorder>
-        </MagicCard>
+          </BorderContainer>
+        </EnhancedCard>
       </div>
 
       {/* Nango Connections */}

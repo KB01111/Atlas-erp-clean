@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -40,35 +40,35 @@ export default function PipedreamTemplateLibrary({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
-  
+
   // Get unique categories
   const categories = React.useMemo(() => {
     const uniqueCategories = new Set<string>();
     templates.forEach(template => uniqueCategories.add(template.category));
     return Array.from(uniqueCategories).sort();
   }, [templates]);
-  
+
   // Filter templates
   useEffect(() => {
     let filtered = [...templates];
-    
+
     // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(template => 
-        template.name.toLowerCase().includes(term) || 
+      filtered = filtered.filter(template =>
+        template.name.toLowerCase().includes(term) ||
         template.description.toLowerCase().includes(term)
       );
     }
-    
+
     // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(template => template.category === selectedCategory);
     }
-    
+
     setFilteredTemplates(filtered);
   }, [templates, searchTerm, selectedCategory]);
-  
+
   // Render template grid item
   const renderTemplateGridItem = (template: WorkflowTemplate) => {
     return (
@@ -83,41 +83,47 @@ export default function PipedreamTemplateLibrary({
               {template.category}
             </div>
           </div>
-          
+
           {template.description && (
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">
               {template.description}
             </p>
           )}
-          
+
           <div className="text-xs text-slate-500 dark:text-slate-400 mb-3">
             <div>Steps: {template.workflow.steps.length}</div>
           </div>
-          
+
           <div className="flex gap-2">
-            <ShimmerButton
+            <EnhancedActionButton
               onClick={() => setSelectedTemplate(template)}
               className="flex-1 px-3 py-1 text-xs bg-indigo-600 text-white rounded-md flex items-center justify-center gap-1"
+              variant="default"
+              size="sm"
+              hover="lift"
             >
               <Info size={12} />
               <span>Details</span>
-            </ShimmerButton>
-            
+            </EnhancedActionButton>
+
             {!readOnly && (
-              <ShimmerButton
+              <EnhancedActionButton
                 onClick={() => onImport(template)}
                 className="flex-1 px-3 py-1 text-xs bg-blue-600 text-white rounded-md flex items-center justify-center gap-1"
+                variant="default"
+                size="sm"
+                hover="lift"
               >
                 <Download size={12} />
                 <span>Use Template</span>
-              </ShimmerButton>
+              </EnhancedActionButton>
             )}
           </div>
         </div>
       </div>
     );
   };
-  
+
   // Render template list item
   const renderTemplateListItem = (template: WorkflowTemplate) => {
     return (
@@ -132,41 +138,47 @@ export default function PipedreamTemplateLibrary({
               {template.category}
             </div>
           </div>
-          
+
           {template.description && (
             <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
               {template.description}
             </p>
           )}
         </div>
-        
+
         <div className="text-xs text-slate-500 dark:text-slate-400 mx-4">
           <div>Steps: {template.workflow.steps.length}</div>
         </div>
-        
+
         <div className="flex gap-2">
-          <ShimmerButton
+          <EnhancedActionButton
             onClick={() => setSelectedTemplate(template)}
             className="px-3 py-1 text-xs bg-indigo-600 text-white rounded-md flex items-center justify-center gap-1"
+            variant="default"
+            size="sm"
+            hover="lift"
           >
             <Info size={12} />
             <span>Details</span>
-          </ShimmerButton>
-          
+          </EnhancedActionButton>
+
           {!readOnly && (
-            <ShimmerButton
+            <EnhancedActionButton
               onClick={() => onImport(template)}
               className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md flex items-center justify-center gap-1"
+              variant="default"
+              size="sm"
+              hover="lift"
             >
               <Download size={12} />
               <span>Use Template</span>
-            </ShimmerButton>
+            </EnhancedActionButton>
           )}
         </div>
       </div>
     );
   };
-  
+
   return (
     <div className="flex flex-col h-full">
       {/* Header with search and filters */}
@@ -175,7 +187,7 @@ export default function PipedreamTemplateLibrary({
           <AnimatedGradientText className="text-xl font-bold">
             Workflow Templates
           </AnimatedGradientText>
-          
+
           <div className="flex gap-2">
             <Tooltip content="Toggle Advanced Filters">
               <button
@@ -185,7 +197,7 @@ export default function PipedreamTemplateLibrary({
                 <Filter size={16} />
               </button>
             </Tooltip>
-            
+
             <div className="flex border border-slate-200 rounded-md overflow-hidden">
               <button
                 onClick={() => setViewMode('grid')}
@@ -210,7 +222,7 @@ export default function PipedreamTemplateLibrary({
             </div>
           </div>
         </div>
-        
+
         {/* Search and basic filters */}
         <div className="flex flex-wrap gap-2 items-center mb-2">
           <div className="relative flex-1 min-w-[200px]">
@@ -233,7 +245,7 @@ export default function PipedreamTemplateLibrary({
               </button>
             )}
           </div>
-          
+
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -246,12 +258,12 @@ export default function PipedreamTemplateLibrary({
               </option>
             ))}
           </select>
-          
+
           <div className="text-sm text-slate-500 whitespace-nowrap">
             {filteredTemplates.length} of {templates.length} templates
           </div>
         </div>
-        
+
         {/* Advanced filters panel */}
         {showFilters && (
           <div className="p-3 bg-slate-50 rounded-md mb-2 animate-in fade-in duration-200">
@@ -271,11 +283,11 @@ export default function PipedreamTemplateLibrary({
           </div>
         )}
       </div>
-      
+
       {/* Templates list */}
       <div className="flex-1 overflow-hidden">
-        <MagicCard className="h-full overflow-hidden">
-          <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+        <EnhancedCard className="h-full overflow-hidden" interactive hoverEffect="shadow">
+          <BorderContainer variant="primary" rounded="xl" className="p-0.5 h-full">
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden h-full">
               {filteredTemplates.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-slate-500 p-4">
@@ -288,7 +300,7 @@ export default function PipedreamTemplateLibrary({
               ) : (
                 <div className="p-4 overflow-auto h-full">
                   <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
-                    {filteredTemplates.map(template => 
+                    {filteredTemplates.map(template =>
                       viewMode === 'grid'
                         ? renderTemplateGridItem(template)
                         : renderTemplateListItem(template)
@@ -297,10 +309,10 @@ export default function PipedreamTemplateLibrary({
                 </div>
               )}
             </div>
-          </ShineBorder>
-        </MagicCard>
+          </BorderContainer>
+        </EnhancedCard>
       </div>
-      
+
       {/* Template details modal */}
       {selectedTemplate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -319,10 +331,10 @@ export default function PipedreamTemplateLibrary({
                 </button>
               </div>
             </div>
-            
+
             <div className="p-4 overflow-auto max-h-[calc(80vh-130px)]">
               <p className="text-sm mb-4">{selectedTemplate.description}</p>
-              
+
               <div className="mb-4">
                 <h3 className="text-lg font-medium mb-2">Workflow Steps</h3>
                 <div className="space-y-2">
@@ -335,7 +347,7 @@ export default function PipedreamTemplateLibrary({
                 </div>
               </div>
             </div>
-            
+
             <div className="p-4 border-t bg-slate-50 flex justify-end gap-2">
               <button
                 onClick={() => setSelectedTemplate(null)}
@@ -343,18 +355,21 @@ export default function PipedreamTemplateLibrary({
               >
                 Close
               </button>
-              
+
               {!readOnly && (
-                <ShimmerButton
+                <EnhancedActionButton
                   onClick={() => {
                     onImport(selectedTemplate);
                     setSelectedTemplate(null);
                   }}
                   className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md flex items-center gap-2"
+                  variant="default"
+                  size="sm"
+                  hover="lift"
                 >
                   <Download size={16} />
                   <span>Use This Template</span>
-                </ShimmerButton>
+                </EnhancedActionButton>
               )}
             </div>
           </div>

@@ -39,8 +39,14 @@ export const MessagePartSchema = z.object({
 /**
  * Artifact schema for structured data
  */
-export const ArtifactSchema = MessagePartSchema.extend({
+export const ArtifactSchema = z.object({
+  contentType: z.string().default('text/plain'),
+  content: z.string().optional(),
+  contentUrl: z.string().url().optional(),
   name: z.string().min(1, "Artifact name is required"),
+  metadata: z.record(z.any()).optional(),
+}).refine(data => data.content !== undefined || data.contentUrl !== undefined, {
+  message: "Either content or contentUrl must be provided"
 });
 
 /**

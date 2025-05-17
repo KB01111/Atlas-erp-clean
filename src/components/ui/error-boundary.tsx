@@ -69,12 +69,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       return (
         <div className="min-h-[200px] flex items-center justify-center p-6">
-          <ShineBorder
+          <BorderContainer
             borderColor="rgba(239, 68, 68, 0.2)"
             shineBorderColor="rgba(239, 68, 68, 0.6)"
             borderRadius="0.75rem"
             className="w-full max-w-md"
-          >
+           variant="primary" rounded="xl">
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-full">
@@ -113,7 +113,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 </Link>
               </div>
             </div>
-          </ShineBorder>
+          </BorderContainer>
         </div>
       );
     }

@@ -1,38 +1,26 @@
-"use client";
+// Split into two files: layout.tsx (server component) and client-layout.tsx (client component)
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter as GeistSans, JetBrains_Mono as GeistMono } from "next/font/google";
 import "./globals.css";
 import "@copilotkit/react-ui/styles.css";
-import { CopilotKit } from "@copilotkit/react-core";
-import dynamic from "next/dynamic";
-import { Providers } from "./providers";
+import { metadata } from "./metadata";
+import ClientLayout from "./client-layout";
 
-// Dynamically import the CopilotPopupWrapper with SSR disabled
-const CopilotPopupWrapper = dynamic(
-  () => import('@/components/CopilotPopupWrapper'),
-  { ssr: false }
-);
-
-// Dynamically import the PerformanceMonitor with SSR disabled
-// Only load in development mode
-const PerformanceMonitor = dynamic(
-  () => process.env.NODE_ENV === 'development'
-    ? import('@/components/PerformanceMonitor').then(mod => mod.PerformanceMonitor)
-    : Promise.resolve(() => null),
-  { ssr: false }
-);
-
-const geistSans = Geist({
+// Using Google Fonts instead of local fonts to avoid font loading issues in Docker
+const geistSans = GeistSans({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = GeistMono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
-// Metadata is now defined in metadata.ts
+// Export metadata for Next.js
+export { metadata };
 
 export default function RootLayout({
   children,
@@ -40,26 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Providers>
-          <CopilotKit
-            runtimeUrl="/api/copilotkit"
-          >
-            {children}
-            <CopilotPopupWrapper
-              labels={{
-                title: "Atlas Assistant",
-                initial: "Hi! I'm your Atlas ERP assistant. How can I help you today?",
-              }}
-            />
-            {/* Only show performance monitor in development */}
-            {process.env.NODE_ENV === 'development' && <PerformanceMonitor />}
-          </CopilotKit>
-        </Providers>
-      </body>
-    </html>
+    <ClientLayout
+      geistSansVariable={geistSans.variable}
+      geistMonoVariable={geistMono.variable}
+    >
+      {children}
+    </ClientLayout>
   );
 }

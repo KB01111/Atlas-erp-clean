@@ -2,6 +2,7 @@ import arango, { aql } from './arango-client';
 import { getLLMSettings } from './llm-settings';
 import { LiteLLM } from './litellm';
 import { v4 as uuidv4 } from 'uuid';
+import { ElementType } from './unstructured-service';
 
 /**
  * Knowledge node types
@@ -599,7 +600,7 @@ export async function saveNodes(nodes: KnowledgeNode[]): Promise<KnowledgeNode[]
  * @param edges The edges to save
  * @returns The saved edges
  */
-export async function saveEdges(edges: any[]): Promise<KnowledgeEdge[]> {
+export async function saveEdges(edges: unknown[]): Promise<KnowledgeEdge[]> {
   try {
     const savedEdges: KnowledgeEdge[] = [];
 
@@ -665,10 +666,16 @@ export async function processDocument(
     maxChunks?: number;
     extractEntities?: boolean;
     extractConcepts?: boolean;
+    structuredElements?: Array<{
+      type: string;
+      text: string;
+      metadata?: Record<string, any>;
+    }>;
   } = {}
 ): Promise<{
   documentNode: KnowledgeNode;
   chunkNodes: KnowledgeNode[];
+  entityNodes?: KnowledgeNode[];
 }> {
   try {
     // Set default options
@@ -688,11 +695,97 @@ export async function processDocument(
       }
     );
 
-    // Split the document into chunks
-    const chunks = splitTextIntoChunks(documentContent, chunkSize, chunkOverlap, maxChunks);
+    // If we have structured elements from unstructured.io, use them for better chunking
+    let chunks: string[] = [];
+
+    if (options.structuredElements && options.structuredElements.length > 0) {
+      // Group elements by type for better organization
+      const titles: string[] = [];
+      const paragraphs: string[] = [];
+      const lists: string[] = [];
+      const tables: string[] = [];
+
+      // Process each element based on its type
+      options.structuredElements.forEach(element => {
+        switch (element.type) {
+          case ElementType.TITLE:
+          case ElementType.HEADER:
+            titles.push(element.text);
+            break;
+          case ElementType.NARRATIVE_TEXT:
+            paragraphs.push(element.text);
+            break;
+          case ElementType.LIST:
+          case ElementType.LIST_ITEM:
+            lists.push(element.text);
+            break;
+          case ElementType.TABLE:
+            tables.push(element.text);
+            break;
+          // Add other element types as needed
+        }
+      });
+
+      // Create semantic chunks based on titles and their content
+      if (titles.length > 0) {
+        let currentChunk = '';
+        let currentTitle = '';
+
+        // Iterate through titles and create chunks
+        for (let i = 0; i < titles.length; i++) {
+          currentTitle = titles[i];
+          currentChunk = currentTitle + '\n\n';
+
+          // Find paragraphs, lists, and tables that belong to this section
+          // In a real implementation, we would use metadata like page numbers
+          // For now, we'll just use a simple heuristic
+
+          // Add paragraphs until the next title
+          const nextTitleIndex = (i < titles.length - 1) ?
+            paragraphs.findIndex(p => p.includes(titles[i + 1])) :
+            paragraphs.length;
+
+          const sectionParagraphs = paragraphs.slice(0, nextTitleIndex !== -1 ? nextTitleIndex : paragraphs.length);
+          currentChunk += sectionParagraphs.join('\n\n');
+
+          // Remove used paragraphs
+          paragraphs.splice(0, sectionParagraphs.length);
+
+          // Add the chunk if it's not empty
+          if (currentChunk.trim().length > 0) {
+            chunks.push(currentChunk);
+          }
+        }
+
+        // Add any remaining paragraphs, lists, and tables
+        if (paragraphs.length > 0 || lists.length > 0 || tables.length > 0) {
+          const remainingContent = [
+            ...paragraphs,
+            ...lists,
+            ...tables
+          ].join('\n\n');
+
+          if (remainingContent.trim().length > 0) {
+            chunks.push(remainingContent);
+          }
+        }
+      } else {
+        // If no titles, create chunks from paragraphs
+        chunks = splitTextIntoChunks(
+          [...paragraphs, ...lists, ...tables].join('\n\n'),
+          chunkSize,
+          chunkOverlap,
+          maxChunks
+        );
+      }
+    } else {
+      // Fall back to standard text chunking
+      chunks = splitTextIntoChunks(documentContent, chunkSize, chunkOverlap, maxChunks);
+    }
 
     // Create nodes for each chunk
     const chunkNodes: KnowledgeNode[] = [];
+    const entityNodes: KnowledgeNode[] = [];
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
@@ -730,9 +823,59 @@ export async function processDocument(
       chunkNodes.push(chunkNode);
     }
 
+    // Extract entities if requested and we have structured elements
+    if (options.extractEntities && options.structuredElements) {
+      // Find entities in the structured elements
+      const entities = options.structuredElements
+        .filter(element => element.type === ElementType.ENTITY)
+        .map(entity => ({
+          text: entity.text,
+          category: entity.metadata?.category || 'Unknown',
+          metadata: entity.metadata || {},
+        }));
+
+      // Create entity nodes
+      for (const entity of entities) {
+        // Check if entity already exists
+        const existingEntities = await getNodes({
+          nodeType: NodeType.ENTITY,
+          query: entity.text,
+          limit: 1,
+        });
+
+        let entityNode: KnowledgeNode;
+
+        if (existingEntities.length > 0) {
+          // Use existing entity
+          entityNode = existingEntities[0];
+        } else {
+          // Create new entity
+          entityNode = await createNode(
+            NodeType.ENTITY,
+            entity.text,
+            entity.text,
+            {
+              category: entity.category,
+              ...entity.metadata,
+            }
+          );
+        }
+
+        // Create edge from document to entity
+        await createEdge(
+          EdgeType.EXTRACTED_FROM,
+          entityNode._key!,
+          documentNode._key!
+        );
+
+        entityNodes.push(entityNode);
+      }
+    }
+
     return {
       documentNode,
       chunkNodes,
+      entityNodes: entityNodes.length > 0 ? entityNodes : undefined,
     };
   } catch (error) {
     console.error('Error processing document:', error);
@@ -839,7 +982,7 @@ export async function getDocumentChunks(documentKey: string): Promise<KnowledgeN
 }
 
 // Export default object with all functions
-export default {
+const defaultExport = {
   initializeKnowledgeGraph,
   createNode,
   getNodeByKey,
@@ -856,3 +999,4 @@ export default {
   searchDocuments,
   getDocumentChunks,
 };
+export default defaultExport;;

@@ -110,7 +110,7 @@ export default function KnowledgeGraphManager({
   };
 
   // Handle document processed
-  const handleDocumentProcessed = (document: any, chunks: any[]) => {
+  const handleDocumentProcessed = (document: unknown, chunks: unknown[]) => {
     // Add the document node to the graph
     const newNodes = [...nodes, document, ...chunks];
 
@@ -129,7 +129,7 @@ export default function KnowledgeGraphManager({
   };
 
   // Handle document selected from search
-  const handleDocumentSelected = (document: any) => {
+  const handleDocumentSelected = (document: unknown) => {
     // Find if the document is already in the graph
     const existingNode = nodes.find(node => node.id === document.id);
 

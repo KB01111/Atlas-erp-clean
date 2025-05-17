@@ -19,12 +19,13 @@ import {
   CheckCircle,
   RotateCcw,
   Key,
-  ExternalLink
+  ExternalLink,
+  Settings
 } from "lucide-react";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { MagicCard } from "@/components/magicui/magic-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
 
 export default function LLMSettingsPage() {
   const [settings, setSettings] = useState<LLMSettings>(defaultLLMSettings);
@@ -343,23 +344,23 @@ export default function LLMSettingsPage() {
             <RotateCcw size={16} />
             <span>{showResetConfirm ? "Confirm Reset" : "Reset to Defaults"}</span>
           </button>
-          <ShimmerButton
+          <EnhancedActionButton
             onClick={handleSubmit}
             disabled={isSaving}
             className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground flex items-center gap-2"
-          >
+           variant="default" size="sm" hover="lift">
             {isSaving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
             <span>{isSaving ? "Saving..." : "Save Settings"}</span>
-          </ShimmerButton>
+          </EnhancedActionButton>
         </div>
       </div>
 
-      <ShineBorder
+      <BorderContainer
         borderColor="rgba(59, 130, 246, 0.2)"
         shineBorderColor="rgba(59, 130, 246, 0.6)"
         borderRadius="0.75rem"
         className="w-full"
-      >
+       variant="primary" rounded="xl">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <form onSubmit={handleSubmit}>
             <div className="space-y-8">
@@ -504,7 +505,7 @@ export default function LLMSettingsPage() {
                 )}
 
                 <div className="md:col-span-2">
-                  <MagicCard
+                  <EnhancedCard
                     className={`p-4 rounded-lg ${
                       testStatus === "success"
                         ? "bg-green-50 border border-green-100"
@@ -514,11 +515,11 @@ export default function LLMSettingsPage() {
                     }`}
                     focus={testStatus !== "idle"}
                     glare={testStatus === "success"}
-                  >
+                   interactive hoverEffect="shadow">
                     <div className="flex flex-col">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="text-sm font-medium">Connection Status</h3>
-                        <ShimmerButton
+                        <EnhancedActionButton
                           onClick={handleTestConnection}
                           disabled={testStatus === "testing"}
                           className={`px-3 py-1 rounded-md text-sm font-medium flex items-center gap-2 ${
@@ -528,7 +529,7 @@ export default function LLMSettingsPage() {
                               ? "bg-red-600 text-white"
                               : "bg-slate-700 text-white"
                           }`}
-                        >
+                         variant="default" size="sm" hover="lift">
                           {testStatus === "testing" ? (
                             <RefreshCw className="animate-spin" size={14} />
                           ) : testStatus === "success" ? (
@@ -547,7 +548,7 @@ export default function LLMSettingsPage() {
                               ? "Retry"
                               : "Test Connection"}
                           </span>
-                        </ShimmerButton>
+                        </EnhancedActionButton>
                       </div>
                       {testMessage ? (
                         <p
@@ -565,7 +566,7 @@ export default function LLMSettingsPage() {
                         </p>
                       )}
                     </div>
-                  </MagicCard>
+                  </EnhancedCard>
                 </div>
               </div>
             </div>
@@ -769,10 +770,10 @@ export default function LLMSettingsPage() {
                 <Settings className="text-slate-500" size={20} />
                 <span>Advanced Settings</span>
               </h2>
-              <MagicCard
+              <EnhancedCard
                 className="p-6 rounded-lg border border-slate-100"
                 focus={false}
-              >
+               interactive hoverEffect="shadow">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="flex text-sm font-medium text-slate-700 mb-1 items-center justify-between">
@@ -847,12 +848,12 @@ export default function LLMSettingsPage() {
                     </p>
                   </div>
                 </div>
-              </MagicCard>
+              </EnhancedCard>
             </div>
           </div>
         </form>
       </div>
-      </ShineBorder>
+      </BorderContainer>
     </div>
   );
 }

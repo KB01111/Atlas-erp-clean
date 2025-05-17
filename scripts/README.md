@@ -1,10 +1,38 @@
-# Atlas-ERP Verification Scripts
+# Atlas-ERP Scripts
 
-This directory contains scripts for verifying the functionality of the Atlas-ERP application and its service connections.
+This directory contains utility scripts for the Atlas-ERP application, including verification, testing, and development tools.
 
 ## Available Scripts
 
-### 1. `install-verification-deps.js`
+### 1. `eslint-autofix.js`
+
+Automatically fixes ESLint issues in the codebase.
+
+```bash
+# Fix all ESLint issues in the project
+node scripts/eslint-autofix.js
+
+# Fix only TypeScript-related issues
+node scripts/eslint-autofix.js --type-only
+
+# Show what would be fixed without making changes
+node scripts/eslint-autofix.js --dry-run
+
+# Fix issues in a specific directory
+node scripts/eslint-autofix.js src/components
+```
+
+You can also use the npm scripts:
+
+```bash
+# Fix all ESLint issues
+pnpm lint:fix
+
+# Fix only TypeScript-related issues
+pnpm lint:fix:type
+```
+
+### 2. `install-verification-deps.js`
 
 Installs the necessary dependencies for the verification scripts.
 
@@ -12,7 +40,7 @@ Installs the necessary dependencies for the verification scripts.
 node scripts/install-verification-deps.js
 ```
 
-### 2. `verify-atlas-erp.js`
+### 3. `verify-atlas-erp.js`
 
 Comprehensive verification script that checks all aspects of the Atlas-ERP application.
 
@@ -32,7 +60,7 @@ This script tests:
 
 The script can also automatically start Docker containers if they're not running.
 
-### 3. `start-docker-environment.js`
+### 4. `start-docker-environment.js`
 
 Starts the Docker environment and verifies that all services are running correctly.
 
@@ -46,7 +74,7 @@ This script:
 - Waits for containers to be healthy
 - Checks service URLs
 
-### 4. `test-features.js`
+### 5. `test-features.js`
 
 Tests the functionality of various features in the Atlas-ERP application.
 

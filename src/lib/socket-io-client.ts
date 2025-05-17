@@ -24,14 +24,28 @@ export function initWebSocketClient(): Socket {
   }
 
   // Create a new Socket.IO client with browser-compatible options
-  socket = socketIOClient({
-    path: '/api/websocket',
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000,
-    transports: ['websocket', 'polling'], // Explicitly specify transports
-  });
+  try {
+    socket = socketIOClient({
+      path: '/api/websocket',
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+      transports: ['websocket', 'polling'], // Explicitly specify transports
+      autoConnect: true, // Ensure auto-connection is enabled
+    });
+    console.log("Socket.IO client initialized");
+  } catch (error) {
+    console.error("Failed to initialize Socket.IO client:", error);
+    // Create a mock socket to prevent errors
+    socket = {
+      connected: false,
+      on: () => {},
+      emit: () => {},
+      disconnect: () => {},
+      off: () => {},
+    } as unknown as Socket;
+  }
 
   // Handle connection events
   socket.on('connect', () => {
@@ -113,7 +127,7 @@ export function unsubscribeFromRoom(room: string): void {
  * @param eventType Event type
  * @param listener Event listener function
  */
-export function addEventListener(eventType: EventType, listener: Function): void {
+export function addEventListener(eventType: EventType, listener: (...args: unknown[]) => any): void {
   if (!eventListeners[eventType]) {
     eventListeners[eventType] = [];
   }
@@ -122,7 +136,7 @@ export function addEventListener(eventType: EventType, listener: Function): void
 
   // If socket exists, add the listener to the socket
   if (socket) {
-    socket.on(eventType, (data: any) => {
+    socket.on(eventType, (data: unknown) => {
       listener(data);
     });
   }
@@ -133,7 +147,7 @@ export function addEventListener(eventType: EventType, listener: Function): void
  * @param eventType Event type
  * @param listener Event listener function
  */
-export function removeEventListener(eventType: EventType, listener: Function): void {
+export function removeEventListener(eventType: EventType, listener: (...args: unknown[]) => any): void {
   if (!eventListeners[eventType]) {
     return;
   }
@@ -149,7 +163,7 @@ export function removeEventListener(eventType: EventType, listener: Function): v
 
     // Re-add remaining listeners
     for (const remainingListener of eventListeners[eventType]) {
-      socket.on(eventType, (data: any) => {
+      socket.on(eventType, (data: unknown) => {
         remainingListener(data);
       });
     }
@@ -161,7 +175,7 @@ export function removeEventListener(eventType: EventType, listener: Function): v
  * @param eventType Event type
  * @param data Event data
  */
-function triggerEventListeners(eventType: EventType, data: any): void {
+function triggerEventListeners(eventType: EventType, data: unknown): void {
   if (!eventListeners[eventType]) {
     return;
   }

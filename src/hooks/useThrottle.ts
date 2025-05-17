@@ -6,7 +6,7 @@ import { useCallback, useRef } from 'react';
  * @param delay The minimum time between function calls in milliseconds
  * @returns A throttled version of the callback function
  */
-export function useThrottle<T extends (...args: any[]) => any>(
+export function useThrottle<T extends (...args: unknown[]) => any>(
   callback: T,
   delay: number = 3000
 ): (...args: Parameters<T>) => void {
@@ -51,7 +51,7 @@ export function useThrottle<T extends (...args: any[]) => any>(
  * @param delay The delay in milliseconds
  * @returns A debounced version of the callback function
  */
-export function useDebounce<T extends (...args: any[]) => any>(
+export function useDebounce<T extends (...args: unknown[]) => any>(
   callback: T,
   delay: number = 500
 ): (...args: Parameters<T>) => void {
@@ -82,7 +82,7 @@ export function useDebounce<T extends (...args: any[]) => any>(
  * @param debounceDelay The delay for debounced function calls in milliseconds
  * @returns An object with throttled and debounced versions of the callback
  */
-export function useRateLimited<T extends (...args: any[]) => any>(
+export function useRateLimited<T extends (...args: unknown[]) => any>(
   callback: T,
   throttleDelay: number = 3000,
   debounceDelay: number = 500

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { NodeType } from '@/lib/arango-knowledge-service';
 import { Brain, FileText, Lightbulb, Database, HelpCircle, MessageSquare, Plus, Save, Trash, Link as LinkIcon } from 'lucide-react';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -215,8 +215,8 @@ export default function KnowledgeGraphEditor({
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Knowledge Graph Editor</h2>
         <div className="flex gap-2">
-          <ShimmerButton
-            onClick={() => {
+          <EnhancedActionButton
+            onClick={() = variant="default" size="sm" hover="lift"> {
               setIsCreatingNode(true);
               setIsCreatingEdge(false);
               setCurrentNode(null);
@@ -226,10 +226,10 @@ export default function KnowledgeGraphEditor({
           >
             <Plus size={14} />
             <span>Add Node</span>
-          </ShimmerButton>
+          </EnhancedActionButton>
 
-          <ShimmerButton
-            onClick={() => {
+          <EnhancedActionButton
+            onClick={() = variant="default" size="sm" hover="lift"> {
               setIsCreatingEdge(true);
               setIsCreatingNode(false);
             }}
@@ -237,13 +237,13 @@ export default function KnowledgeGraphEditor({
           >
             <LinkIcon size={14} />
             <span>Add Edge</span>
-          </ShimmerButton>
+          </EnhancedActionButton>
 
-          <ShimmerButton
+          <EnhancedActionButton
             onClick={handleSave}
             disabled={isSaving}
             className="px-3 py-1 rounded-md text-sm font-medium bg-green-500 text-white flex items-center gap-1"
-          >
+           variant="default" size="sm" hover="lift">
             {isSaving ? (
               <LoadingState variant="inline" message="Saving..." />
             ) : (
@@ -252,7 +252,7 @@ export default function KnowledgeGraphEditor({
                 <span>Save Changes</span>
               </>
             )}
-          </ShimmerButton>
+          </EnhancedActionButton>
         </div>
       </div>
 
@@ -266,8 +266,8 @@ export default function KnowledgeGraphEditor({
         />
       )}
 
-      <MagicCard className="overflow-hidden flex-1">
-        <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+      <EnhancedCard className="overflow-hidden flex-1" interactive hoverEffect="shadow">
+        <BorderContainer borderRadius="0.75rem" className="p-0.5 h-full" variant="primary" rounded="xl">
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden h-full p-4">
             {isCreatingNode && (
               <div className="space-y-4">
@@ -323,12 +323,12 @@ export default function KnowledgeGraphEditor({
                   >
                     Cancel
                   </button>
-                  <ShimmerButton
+                  <EnhancedActionButton
                     onClick={handleCreateNode}
                     className="px-3 py-1 rounded-md text-sm font-medium bg-blue-500 text-white"
-                  >
+                   variant="default" size="sm" hover="lift">
                     Create Node
-                  </ShimmerButton>
+                  </EnhancedActionButton>
                 </div>
               </div>
             )}
@@ -392,12 +392,12 @@ export default function KnowledgeGraphEditor({
                   >
                     Cancel
                   </button>
-                  <ShimmerButton
+                  <EnhancedActionButton
                     onClick={handleCreateEdge}
                     className="px-3 py-1 rounded-md text-sm font-medium bg-purple-500 text-white"
-                  >
+                   variant="default" size="sm" hover="lift">
                     Create Edge
-                  </ShimmerButton>
+                  </EnhancedActionButton>
                 </div>
               </div>
             )}
@@ -465,12 +465,12 @@ export default function KnowledgeGraphEditor({
                 </div>
 
                 <div className="flex justify-end">
-                  <ShimmerButton
+                  <EnhancedActionButton
                     onClick={handleUpdateNode}
                     className="px-3 py-1 rounded-md text-sm font-medium bg-blue-500 text-white"
-                  >
+                   variant="default" size="sm" hover="lift">
                     Update Node
-                  </ShimmerButton>
+                  </EnhancedActionButton>
                 </div>
               </div>
             )}
@@ -485,8 +485,8 @@ export default function KnowledgeGraphEditor({
               </div>
             )}
           </div>
-        </ShineBorder>
-      </MagicCard>
+        </BorderContainer>
+      </EnhancedCard>
     </div>
   );
 }

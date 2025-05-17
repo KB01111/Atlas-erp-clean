@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { Agent } from '@/lib/agent-service';
 import { Loader2, Play, StopCircle, AlertCircle, Clock, CheckCircle, XCircle, Bot, MessageSquare, ArrowRight } from 'lucide-react';
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text';
@@ -274,8 +274,8 @@ Let me know if you need any clarification or have follow-up questions!`;
   };
 
   return (
-    <MagicCard className={`rounded-xl overflow-hidden ${className}`}>
-      <ShineBorder borderRadius="0.75rem" className="p-0.5">
+    <EnhancedCard className={`rounded-xl overflow-hidden ${className}`} interactive hoverEffect="shadow">
+      <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
         <div className="bg-card rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold flex items-center">
@@ -334,22 +334,22 @@ Let me know if you need any clarification or have follow-up questions!`;
             
             <div className="flex justify-end">
               {isExecuting ? (
-                <ShimmerButton
+                <EnhancedActionButton
                   onClick={stopExecution}
                   className="px-4 py-2 rounded-md font-medium bg-red-500 text-white"
-                >
+                 variant="default" size="sm" hover="lift">
                   <StopCircle size={16} className="mr-2" />
                   Stop Execution
-                </ShimmerButton>
+                </EnhancedActionButton>
               ) : (
-                <ShimmerButton
+                <EnhancedActionButton
                   onClick={executeAgent}
                   disabled={!input.trim()}
                   className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground disabled:opacity-50"
-                >
+                 variant="default" size="sm" hover="lift">
                   <Play size={16} className="mr-2" />
                   Execute Agent
-                </ShimmerButton>
+                </EnhancedActionButton>
               )}
             </div>
             
@@ -362,7 +362,7 @@ Let me know if you need any clarification or have follow-up questions!`;
             )}
           </div>
         </div>
-      </ShineBorder>
-    </MagicCard>
+      </BorderContainer>
+    </EnhancedCard>
   );
 }

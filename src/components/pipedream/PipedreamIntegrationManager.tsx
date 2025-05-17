@@ -8,7 +8,7 @@ import PipedreamTemplateLibrary from './PipedreamTemplateLibrary';
 import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { Tooltip } from "@/components/ui/tooltip";
 import {
   Plus,
@@ -47,8 +47,8 @@ export interface WorkflowExecution {
     status: WorkflowExecutionStatus;
     startTime: string;
     endTime?: string;
-    input?: any;
-    output?: any;
+    input?: unknown;
+    output?: unknown;
     error?: string;
   }[];
   error?: string;
@@ -312,8 +312,8 @@ export default function PipedreamIntegrationManager({
           </div>
 
           <div className="flex gap-2">
-            <ShimmerButton
-              onClick={() => {
+            <EnhancedActionButton
+              onClick={() = variant="default" size="sm" hover="lift"> {
                 setSelectedWorkflow(workflow);
                 setActiveTab('builder');
               }}
@@ -321,16 +321,16 @@ export default function PipedreamIntegrationManager({
             >
               <Edit size={12} />
               <span>Edit</span>
-            </ShimmerButton>
+            </EnhancedActionButton>
 
             {onRunWorkflow && (
-              <ShimmerButton
-                onClick={() => runWorkflow(workflow.id)}
+              <EnhancedActionButton
+                onClick={() = variant="default" size="sm" hover="lift"> runWorkflow(workflow.id)}
                 className="flex-1 px-3 py-1 text-xs bg-blue-600 text-white rounded-md flex items-center justify-center gap-1"
               >
                 <Play size={12} />
                 <span>Run</span>
-              </ShimmerButton>
+              </EnhancedActionButton>
             )}
 
             <div className="flex">
@@ -391,8 +391,8 @@ export default function PipedreamIntegrationManager({
         </div>
 
         <div className="flex gap-2">
-          <ShimmerButton
-            onClick={() => {
+          <EnhancedActionButton
+            onClick={() = variant="default" size="sm" hover="lift"> {
               setSelectedWorkflow(workflow);
               setActiveTab('builder');
             }}
@@ -400,16 +400,16 @@ export default function PipedreamIntegrationManager({
           >
             <Edit size={12} />
             <span>Edit</span>
-          </ShimmerButton>
+          </EnhancedActionButton>
 
           {onRunWorkflow && (
-            <ShimmerButton
-              onClick={() => runWorkflow(workflow.id)}
+            <EnhancedActionButton
+              onClick={() = variant="default" size="sm" hover="lift"> runWorkflow(workflow.id)}
               className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md flex items-center justify-center gap-1"
             >
               <Play size={12} />
               <span>Run</span>
-            </ShimmerButton>
+            </EnhancedActionButton>
           )}
 
           <Tooltip content="Duplicate Workflow">
@@ -480,13 +480,13 @@ export default function PipedreamIntegrationManager({
             {activeTab === 'workflows' && (
               <>
                 {!readOnly && (
-                  <ShimmerButton
+                  <EnhancedActionButton
                     onClick={createWorkflow}
                     className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-md flex items-center gap-1"
-                  >
+                   variant="default" size="sm" hover="lift">
                     <Plus size={16} />
                     <span>New Workflow</span>
-                  </ShimmerButton>
+                  </EnhancedActionButton>
                 )}
 
                 <div className="flex border border-slate-200 rounded-md overflow-hidden">

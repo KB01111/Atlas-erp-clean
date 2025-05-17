@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas-ERP UI Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .component {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .component h2 {
+            margin-top: 0;
+            color: #555;
+        }
+        .welcome-section {
+            background: linear-gradient(to right, #f0f4ff, #e6f7ff);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .welcome-header {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .welcome-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        .welcome-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .welcome-tab.active {
+            border-bottom-color: #3b82f6;
+            color: #3b82f6;
+        }
+        .welcome-content {
+            padding: 10px;
+        }
+        .agent-action {
+            background: linear-gradient(to right, #f9fafb, #f3f4f6);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .agent-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .agent-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #e0e7ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        .agent-title {
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(to right, #8b5cf6, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .agent-button {
+            background: linear-gradient(to right, #8b5cf6, #6366f1);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .metrics-container {
+            background: linear-gradient(to right, #f9fafb, #f3f4f6);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .metrics-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .metrics-title {
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-left: 10px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .metric-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .metric-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .metric-icon {
+            width: 30px;
+            height: 30px;
+            background-color: #e0e7ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        .metric-name {
+            font-weight: bold;
+            color: #555;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Atlas-ERP UI Test</h1>
+        
+        <div class="component">
+            <h2>EnhancedWelcomeSection</h2>
+            <div class="welcome-section">
+                <div class="welcome-header">Good morning, Admin!</div>
+                <p>Monday, May 20, 2024 • 10:30 AM</p>
+                
+                <div class="welcome-tabs">
+                    <div class="welcome-tab active">Tasks</div>
+                    <div class="welcome-tab">Meetings</div>
+                    <div class="welcome-tab">Messages</div>
+                </div>
+                
+                <div class="welcome-content">
+                    <div>
+                        <h3>Pending Tasks: 3</h3>
+                        <h3>Notifications: 2</h3>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>Quick Tips</h3>
+                    <ul>
+                        <li>Use the AI assistant to help you navigate the system</li>
+                        <li>Check the system status panel for service availability</li>
+                        <li>Explore the agent actions for automated workflows</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="component">
+            <h2>EnhancedAgentAction</h2>
+            <div class="agent-action">
+                <div class="agent-header">
+                    <div class="agent-icon">🤖</div>
+                    <div>
+                        <div class="agent-title">CFO-Bot</div>
+                        <p>Generate financial reports and analysis</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <span style="background-color: #e0e7ff; padding: 4px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px;">Financial Analysis</span>
+                    <span style="background-color: #e0e7ff; padding: 4px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px;">Report Generation</span>
+                    <span style="background-color: #e0e7ff; padding: 4px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px;">Budget Planning</span>
+                </div>
+                
+                <button class="agent-button">Run Agent</button>
+                
+                <div style="margin-top: 15px; padding: 10px; background-color: #f3f4f6; border-radius: 4px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                        <span style="margin-right: 5px;">📋</span>
+                        <span style="font-weight: bold; font-size: 14px;">Result</span>
+                    </div>
+                    <p>CFO-Bot has completed the task successfully. Here are the results:</p>
+                    <ol>
+                        <li>Generated monthly financial report</li>
+                        <li>Analyzed cash flow trends</li>
+                        <li>Identified cost-saving opportunities</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <div class="component">
+            <h2>RealTimeMetrics</h2>
+            <div class="metrics-container">
+                <div class="metrics-header">
+                    <span>📊</span>
+                    <div class="metrics-title">Real-Time Metrics</div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">💻</div>
+                            <div class="metric-name">CPU</div>
+                        </div>
+                        <div class="metric-value">45%</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">🧠</div>
+                            <div class="metric-name">Memory</div>
+                        </div>
+                        <div class="metric-value">62%</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">💾</div>
+                            <div class="metric-name">Storage</div>
+                        </div>
+                        <div class="metric-value">28%</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">📄</div>
+                            <div class="metric-name">Documents</div>
+                        </div>
+                        <div class="metric-value">324</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

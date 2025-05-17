@@ -6,11 +6,10 @@ import * as agentService from '@/lib/agent-service';
  */
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { params } = context;
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Get the agent

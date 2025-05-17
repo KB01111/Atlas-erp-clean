@@ -22,7 +22,7 @@ export interface OCROptions {
     height: number;
   };
   scale?: number; // Image scale factor
-  logger?: (message: any) => void; // Progress logger
+  logger?: (message: unknown) => void; // Progress logger
 }
 
 // Define OCR result
@@ -87,7 +87,7 @@ export async function performOCR(
     
     // Set parameters if provided
     if (options.psm !== undefined || options.oem !== undefined || options.whitelist || options.blacklist) {
-      const params: any = {};
+      const params: unknown = {};
       
       if (options.psm !== undefined) {
         params.tessedit_pageseg_mode = options.psm;
@@ -109,7 +109,7 @@ export async function performOCR(
     }
     
     // Recognize text
-    const recognizeOptions: any = {};
+    const recognizeOptions: unknown = {};
     
     if (options.rectangle) {
       recognizeOptions.rectangle = options.rectangle;
@@ -200,7 +200,7 @@ export async function performMultiRegionOCR(
       
       // Set parameters if provided
       if (options.psm !== undefined || options.oem !== undefined || options.whitelist || options.blacklist) {
-        const params: any = {};
+        const params: unknown = {};
         
         if (options.psm !== undefined) {
           params.tessedit_pageseg_mode = options.psm;

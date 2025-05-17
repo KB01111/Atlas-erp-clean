@@ -177,7 +177,7 @@ export async function deleteFile(
   }
 }
 
-export default {
+const defaultExport = {
   uploadFile,
   listFiles,
   getFileUrl,
@@ -185,3 +185,4 @@ export default {
   ensureBucketExists,
   client: minioClient,
 };
+export default defaultExport;;

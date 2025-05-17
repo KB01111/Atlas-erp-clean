@@ -9,7 +9,7 @@
  * Service configuration interface
  */
 export interface ServiceConfig {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -86,9 +86,9 @@ export async function getServiceConfig(serviceName: string): Promise<ServiceConf
  * @param mockImplementation The mock implementation
  */
 export function addMockService(
-  mockServiceProvider: any,
+  mockServiceProvider: unknown,
   serviceName: string,
-  mockImplementation: any
+  mockImplementation: unknown
 ) {
   mockServiceProvider[`mock${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)}`] = mockImplementation;
   
@@ -101,7 +101,8 @@ export function addMockService(
   };
 }
 
-export default {
+const defaultExport = {
   getServiceConfig,
   addMockService,
 };
+export default defaultExport;;

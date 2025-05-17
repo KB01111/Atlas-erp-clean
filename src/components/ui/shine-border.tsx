@@ -1,73 +1,116 @@
 "use client";
 
-import { useEffect, useRef, ReactNode } from "react";
+import React from "react";
+import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 
+const borderVariants = cva(
+  "relative border overflow-hidden",
+  {
+    variants: {
+      variant: {
+        default: "border-border",
+        primary: "border-primary/50",
+        secondary: "border-secondary/50",
+        accent: "border-accent/50",
+        destructive: "border-destructive/50",
+      },
+      rounded: {
+        none: "rounded-none",
+        sm: "rounded-sm",
+        md: "rounded-md",
+        lg: "rounded-lg",
+        xl: "rounded-xl",
+        "2xl": "rounded-2xl",
+        full: "rounded-full",
+      },
+      borderWidth: {
+        thin: "border",
+        medium: "border-2",
+        thick: "border-4",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      rounded: "lg",
+      borderWidth: "thin",
+    },
+  }
+);
+
+interface BorderContainerProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof borderVariants> {
+  children: React.ReactNode;
+  borderRadius?: string; // For backward compatibility
+}
+
+/**
+ * BorderContainer - A clean border container component
+ *
+ * This component replaces the ShineBorder with a simpler,
+ * non-animated version that still provides visual appeal through
+ * clean borders with various styling options.
+ *
+ * @example
+ * <BorderContainer variant="primary" rounded="xl" borderWidth="medium">
+ *   <div>Content</div>
+ * </BorderContainer>
+ */
+export function BorderContainer({
+  children,
+  className,
+  variant,
+  rounded,
+  borderWidth,
+  borderRadius,
+  ...props
+}: BorderContainerProps) {
+  // Apply inline style for borderRadius if provided (for backward compatibility)
+  const style = borderRadius ? { borderRadius } : undefined;
+
+  return (
+    <div
+      className={cn(
+        borderVariants({ variant, rounded, borderWidth }),
+        className
+      )}
+      style={style}
+      {...props}
+    >
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
+}
+
+// For backward compatibility
+export function ShineBorder({
+  children,
+  borderColor,
+  shineBorderColor,
+  borderRadius = "0.5rem",
+  className = "",
+  duration,
+  ...props
+}: ShineBorderProps) {
+  return (
+    <BorderContainer
+      variant="primary"
+      borderRadius={borderRadius}
+      className={className}
+      {...props}
+    >
+      {children}
+    </BorderContainer>
+  );
+}
+
+// For backward compatibility
 interface ShineBorderProps {
-  children: ReactNode;
+  children: React.ReactNode;
   borderColor?: string;
   shineBorderColor?: string;
   borderRadius?: string;
   className?: string;
   duration?: number;
-}
-
-export function ShineBorder({
-  children,
-  borderColor = "rgba(59, 130, 246, 0.2)",
-  shineBorderColor = "rgba(59, 130, 246, 0.6)",
-  borderRadius = "0.5rem",
-  className = "",
-  duration = 3,
-}: ShineBorderProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    // Add the keyframes animation if it doesn't exist
-    if (!document.querySelector("#shine-border-keyframes")) {
-      const style = document.createElement("style");
-      style.id = "shine-border-keyframes";
-      style.textContent = `
-        @keyframes shine-border {
-          0% {
-            background-position: 0% 0%;
-          }
-          100% {
-            background-position: 200% 0%;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    // Clean up
-    return () => {
-      // No cleanup needed for this effect
-    };
-  }, []);
-
-  return (
-    <div
-      ref={containerRef}
-      className={className}
-      style={{
-        position: "relative",
-        borderRadius,
-        background: `linear-gradient(90deg, ${borderColor} 0%, ${shineBorderColor} 50%, ${borderColor} 100%)`,
-        backgroundSize: "200% 100%",
-        animation: `shine-border ${duration}s linear infinite`,
-      }}
-    >
-      <div
-        style={{
-          borderRadius: `calc(${borderRadius} - 1px)`,
-          overflow: "hidden",
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
 }

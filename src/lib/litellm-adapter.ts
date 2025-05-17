@@ -1,4 +1,4 @@
-import { LLMAdapter, LLMMessage, LLMChatCompletionOptions, LLMChatCompletionResponse, LLMChatCompletionResponseChunk } from "@copilotkit/runtime";
+import { CopilotServiceAdapter, LLMAdapter, LLMMessage, LLMChatCompletionOptions, LLMChatCompletionResponse, LLMChatCompletionResponseChunk } from "@copilotkit/runtime";
 import { completion } from "litellm";
 
 /**
@@ -7,7 +7,7 @@ import { completion } from "litellm";
  * This adapter integrates LiteLLM with CopilotKit, allowing the use of 100+ LLM providers
  * through a unified interface.
  */
-export class LiteLLMAdapter implements LLMAdapter {
+export class LiteLLMAdapter implements CopilotServiceAdapter {
   private model: string;
   private apiKey?: string;
   private apiBase?: string;
@@ -40,7 +40,7 @@ export class LiteLLMAdapter implements LLMAdapter {
     maxRetries?: number;
     temperature?: number;
     maxTokens?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   }) {
     this.model = model;
     this.apiKey = apiKey;
@@ -57,7 +57,7 @@ export class LiteLLMAdapter implements LLMAdapter {
   /**
    * Convert CopilotKit messages to LiteLLM format
    */
-  private convertMessages(messages: LLMMessage[]): any[] {
+  private convertMessages(messages: LLMMessage[]): unknown[] {
     return messages.map((message) => ({
       role: message.role,
       content: message.content,
@@ -79,12 +79,12 @@ export class LiteLLMAdapter implements LLMAdapter {
         messages: convertedMessages,
         temperature: options?.temperature ?? this.temperature,
         max_tokens: options?.maxTokens ?? this.maxTokens,
-        api_key: this.apiKey,
-        api_base: this.apiBase,
+        apiKey: this.apiKey,
+        baseUrl: this.apiBase,
         fallbacks: this.fallbackModels ? this.fallbackModels.map(model => ({
           model,
-          api_key: this.fallbackApiKey,
-          api_base: this.fallbackApiBase,
+          apiKey: this.fallbackApiKey,
+          baseUrl: this.fallbackApiBase,
         })) : undefined,
         num_retries: this.maxRetries,
         ...this.additionalParams,
@@ -147,12 +147,12 @@ export class LiteLLMAdapter implements LLMAdapter {
         messages: convertedMessages,
         temperature: options?.temperature ?? this.temperature,
         max_tokens: options?.maxTokens ?? this.maxTokens,
-        api_key: this.apiKey,
-        api_base: this.apiBase,
+        apiKey: this.apiKey,
+        baseUrl: this.apiBase,
         fallbacks: this.fallbackModels ? this.fallbackModels.map(model => ({
           model,
-          api_key: this.fallbackApiKey,
-          api_base: this.fallbackApiBase,
+          apiKey: this.fallbackApiKey,
+          baseUrl: this.fallbackApiBase,
         })) : undefined,
         num_retries: this.maxRetries,
         stream: true,
@@ -205,6 +205,27 @@ export class LiteLLMAdapter implements LLMAdapter {
       }
 
       // If we couldn't categorize the error, rethrow it
+      throw error;
+    }
+  }
+
+  /**
+   * Process a request for the CopilotKit runtime
+   * This is required by the CopilotServiceAdapter interface
+   */
+  async process(request: unknown): Promise<any> {
+    try {
+      // Extract messages and options from the request
+      const { messages, options } = request;
+
+      // Check if streaming is requested
+      if (options?.stream) {
+        return this.chatCompletionStream(messages, options);
+      } else {
+        return this.chatCompletion(messages, options);
+      }
+    } catch (error) {
+      console.error("LiteLLM process error:", error);
       throw error;
     }
   }

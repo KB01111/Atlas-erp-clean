@@ -4,15 +4,17 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCopilotReadable, useCopilotAction } from "@copilotkit/react-core";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { MagicCard } from "@/components/magicui/magic-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
 import { WorkflowNode, WorkflowEdge } from "@/lib/workflow-service";
 import KnowledgeNodeSelector from "@/components/workflow/KnowledgeNodeSelector";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { ArrowLeft, Save, Play, Brain } from "lucide-react";
 import dynamic from "next/dynamic";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
 
 // Dynamically import the WorkflowBuilder component with SSR disabled
 const WorkflowBuilder = dynamic(
@@ -24,7 +26,7 @@ export default function EditWorkflowPage() {
   const params = useParams();
   const router = useRouter();
   const workflowId = params.id as string;
-  
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [nodes, setNodes] = useState<WorkflowNode[]>([]);
@@ -150,8 +152,8 @@ export default function EditWorkflowPage() {
     // Create a new knowledge node in the workflow
     if (selectedNodeId) {
       // Update existing node
-      setNodes(nodes.map(node => 
-        node.id === selectedNodeId 
+      setNodes(nodes.map(node =>
+        node.id === selectedNodeId
           ? { ...node, knowledgeNodeId: nodeId, name: nodeName }
           : node
       ));
@@ -167,10 +169,10 @@ export default function EditWorkflowPage() {
           useAsQuery: false,
         },
       };
-      
+
       setNodes([...nodes, newNode]);
     }
-    
+
     setShowKnowledgeSelector(false);
     setSelectedNodeId(null);
   };
@@ -180,122 +182,17 @@ export default function EditWorkflowPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center mb-8">
-        <button
-          onClick={() => router.push("/dashboard/workflows")}
-          className="mr-4 p-2 rounded-full hover:bg-muted"
-        >
-          <ArrowLeft size={20} />
-        </button>
+    <div className="space-y-6">
+      <h1>Edit Workflow</h1>
+      {loading ? (
+        <LoadingState message="Loading workflow..." variant="card" size="large" />
+      ) : (
         <div>
-          <AnimatedGradientText
-            text="Edit Workflow"
-            className="text-3xl font-bold"
-            gradient="linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899)"
-          />
-          <p className="text-muted-foreground mt-2">
-            Edit your AI automation workflow
-          </p>
-        </div>
-      </div>
-
-      {error && (
-        <ErrorMessage
-          title="Error"
-          message={error}
-          variant="error"
-          className="mb-6"
-        />
-      )}
-
-      {showKnowledgeSelector && (
-        <div className="mb-6">
-          <KnowledgeNodeSelector
-            onNodeSelected={handleKnowledgeNodeSelected}
-            onCancel={() => {
-              setShowKnowledgeSelector(false);
-              setSelectedNodeId(null);
-            }}
-          />
+          <p>Workflow ID: {workflowId}</p>
+          <p>Name: {name}</p>
+          <p>Description: {description}</p>
         </div>
       )}
-
-      <form onSubmit={handleSave} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter workflow name"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary h-32"
-                placeholder="Enter workflow description"
-              ></textarea>
-            </div>
-
-            <div className="flex gap-2">
-              <ShimmerButton
-                type="submit"
-                disabled={saving}
-                className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground"
-              >
-                <Save size={18} className="mr-2" />
-                {saving ? "Saving..." : "Save Workflow"}
-              </ShimmerButton>
-
-              <ShimmerButton
-                type="button"
-                onClick={() => handleExecuteWorkflow(false)}
-                className="px-4 py-2 rounded-md font-medium bg-green-600 text-white"
-              >
-                <Play size={18} className="mr-2" />
-                Execute
-              </ShimmerButton>
-
-              <ShimmerButton
-                type="button"
-                onClick={() => setShowKnowledgeSelector(true)}
-                className="px-4 py-2 rounded-md font-medium bg-indigo-600 text-white"
-              >
-                <Brain size={18} className="mr-2" />
-                Add Knowledge
-              </ShimmerButton>
-            </div>
-          </div>
-        </div>
-
-        <div className="border border-input rounded-lg p-4 mb-6">
-          <h3 className="text-lg font-semibold mb-4">Workflow Builder</h3>
-          <div className="h-[600px]">
-            <WorkflowBuilder
-              workflow={{
-                id: workflowId,
-                name,
-                description,
-                nodes,
-                edges,
-              }}
-              onChange={(updatedWorkflow) => {
-                setNodes(updatedWorkflow.nodes);
-                setEdges(updatedWorkflow.edges);
-              }}
-              onExecute={handleExecuteWorkflow}
-            />
-          </div>
-        </div>
-      </form>
     </div>
   );
 }

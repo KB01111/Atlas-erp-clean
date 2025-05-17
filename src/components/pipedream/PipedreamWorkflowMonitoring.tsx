@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { Tooltip } from "@/components/ui/tooltip";
 import { LoadingState } from '@/components/ui/loading-state';
@@ -335,35 +335,35 @@ export default function PipedreamWorkflowMonitoring({
       {/* Statistics panel */}
       {showStats && (
         <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="text-sm text-slate-500 mb-1">Total Executions</div>
                 <div className="text-2xl font-bold">{stats.total}</div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
 
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="text-sm text-slate-500 mb-1">Success Rate</div>
                 <div className="text-2xl font-bold text-green-600">{stats.successRate.toFixed(1)}%</div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
 
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="text-sm text-slate-500 mb-1">Avg. Duration</div>
                 <div className="text-2xl font-bold">{formatDuration(stats.avgDuration)}</div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
 
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="text-sm text-slate-500 mb-1">Completed</div>
                 <div className="flex items-center gap-2">
@@ -371,11 +371,11 @@ export default function PipedreamWorkflowMonitoring({
                   <div className="text-2xl font-bold">{stats.completed}</div>
                 </div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
 
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="text-sm text-slate-500 mb-1">Failed</div>
                 <div className="flex items-center gap-2">
@@ -383,15 +383,15 @@ export default function PipedreamWorkflowMonitoring({
                   <div className="text-2xl font-bold">{stats.failed}</div>
                 </div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
         </div>
       )}
 
       {/* Executions list */}
       <div className="flex-1 overflow-hidden">
-        <MagicCard className="h-full overflow-hidden">
-          <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+        <EnhancedCard className="h-full overflow-hidden" interactive hoverEffect="shadow">
+          <BorderContainer borderRadius="0.75rem" className="p-0.5 h-full" variant="primary" rounded="xl">
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden h-full">
               {isLoading ? (
                 <LoadingState message="Loading executions..." variant="card" size="large" />
@@ -532,8 +532,8 @@ export default function PipedreamWorkflowMonitoring({
                 </div>
               )}
             </div>
-          </ShineBorder>
-        </MagicCard>
+          </BorderContainer>
+        </EnhancedCard>
       </div>
     </div>
   );

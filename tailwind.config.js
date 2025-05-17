@@ -89,30 +89,35 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
-        "shimmer-slide": {
-          to: { transform: "translate(calc(100cqw - 100%), 0)" },
+        "pulse": {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.85 },
         },
-        "spin-around": {
-          "0%": { transform: "translateZ(0) rotate(0)" },
-          "15%, 35%": { transform: "translateZ(0) rotate(90deg)" },
-          "65%, 85%": { transform: "translateZ(0) rotate(270deg)" },
-          "100%": { transform: "translateZ(0) rotate(360deg)" },
+        "fade-in": {
+          from: { opacity: 0 },
+          to: { opacity: 1 },
         },
-        ripple: {
-          "0%, 100%": {
-            transform: "translate(-50%, -50%) scale(1)",
-          },
-          "50%": {
-            transform: "translate(-50%, -50%) scale(0.9)",
-          },
+        "fade-out": {
+          from: { opacity: 1 },
+          to: { opacity: 0 },
+        },
+        "slide-in-right": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "slide-out-right": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(100%)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "shimmer-slide": "shimmer-slide var(--speed) ease-in-out infinite alternate",
-        "spin-around": "spin-around calc(var(--speed) * 2) infinite linear",
-        ripple: "ripple var(--duration,2s) ease calc(var(--i, 0)*.2s) infinite",
+        "pulse": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "fade-in": "fade-in 0.3s ease-out",
+        "fade-out": "fade-out 0.3s ease-in",
+        "slide-in-right": "slide-in-right 0.3s ease-out",
+        "slide-out-right": "slide-out-right 0.3s ease-in",
       },
     },
   },

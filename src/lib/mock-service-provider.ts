@@ -37,10 +37,10 @@ export const mockSurrealDB = {
   select: async () => {
     return [];
   },
-  create: async (table: string, data: any) => {
+  create: async (table: string, data: unknown) => {
     return { id: `${table}:mock-${Date.now()}`, ...data };
   },
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: unknown) => {
     return { id, ...data };
   },
   delete: async () => {
@@ -61,25 +61,25 @@ export const mockArangoDB = {
   collection: () => ({
     exists: async () => true,
     create: async () => ({}),
-    save: async (doc: any) => ({ _id: `mock-${Date.now()}`, ...doc }),
-    update: async (id: string, doc: any) => ({ _id: id, ...doc }),
+    save: async (doc: unknown) => ({ _id: `mock-${Date.now()}`, ...doc }),
+    update: async (id: string, doc: unknown) => ({ _id: id, ...doc }),
     remove: async () => ({})
   }),
   edgeCollection: () => ({
     exists: async () => true,
     create: async () => ({}),
-    save: async (doc: any) => ({ _id: `mock-${Date.now()}`, ...doc }),
-    update: async (id: string, doc: any) => ({ _id: id, ...doc }),
+    save: async (doc: unknown) => ({ _id: `mock-${Date.now()}`, ...doc }),
+    update: async (id: string, doc: unknown) => ({ _id: id, ...doc }),
     remove: async () => ({})
   }),
   graph: () => ({
     exists: async () => true,
     create: async () => ({}),
     vertexCollection: () => ({
-      save: async (doc: any) => ({ _id: `mock-${Date.now()}`, ...doc })
+      save: async (doc: unknown) => ({ _id: `mock-${Date.now()}`, ...doc })
     }),
     edgeCollection: () => ({
-      save: async (doc: any) => ({ _id: `mock-${Date.now()}`, ...doc })
+      save: async (doc: unknown) => ({ _id: `mock-${Date.now()}`, ...doc })
     })
   })
 };
@@ -215,7 +215,7 @@ export const mockNango = {
     };
   },
 
-  createConnection: async (data: any) => {
+  createConnection: async (data: unknown) => {
     const newConnection = {
       id: mockNango.connections.length + 1,
       connection_id: data.connection_id,
@@ -317,14 +317,14 @@ export const mockPipedream = {
   // Mock API methods
   getWorkflows: async () => mockPipedream.workflows,
   getWorkflow: async (id: string) => mockPipedream.workflows.find(w => w.id === id) || null,
-  createWorkflow: async (workflow: any) => ({
+  createWorkflow: async (workflow: unknown) => ({
     id: `mock-workflow-${Date.now()}`,
     ...workflow,
     active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }),
-  updateWorkflow: async (id: string, updates: any) => {
+  updateWorkflow: async (id: string, updates: unknown) => {
     const workflow = mockPipedream.workflows.find(w => w.id === id);
     if (!workflow) return null;
     return { ...workflow, ...updates, updated_at: new Date().toISOString() };
@@ -333,21 +333,21 @@ export const mockPipedream = {
 
   getSources: async () => mockPipedream.sources,
   getSource: async (id: string) => mockPipedream.sources.find(s => s.id === id) || null,
-  createSource: async (source: any) => ({
+  createSource: async (source: unknown) => ({
     id: `mock-source-${Date.now()}`,
     ...source,
     active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }),
-  updateSource: async (id: string, updates: any) => {
+  updateSource: async (id: string, updates: unknown) => {
     const source = mockPipedream.sources.find(s => s.id === id);
     if (!source) return null;
     return { ...source, ...updates, updated_at: new Date().toISOString() };
   },
   deleteSource: async () => ({ success: true }),
 
-  triggerWorkflow: async (id: string, data: any) => ({
+  triggerWorkflow: async (id: string, data: unknown) => ({
     execution_id: `mock-execution-${Date.now()}`,
     workflow_id: id,
     status: 'success',

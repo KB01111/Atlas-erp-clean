@@ -4,10 +4,17 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useCopilotReadable, useCopilotAction } from "@copilotkit/react-core";
 import {
   FileText, Folder, Search, Upload, Download, Trash2, Loader2,
-  Eye, AlertCircle, RefreshCw, FileUp, Filter
+  Eye, AlertCircle, RefreshCw, FileUp, Filter, CheckCircle, X
 } from "lucide-react";
 import DocumentPreview from "@/components/DocumentPreview";
 import { useRateLimit } from "@/context/RateLimitContext";
+import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { LoadingState } from "@/components/ui/loading-state";
+import { EmptyState } from "@/components/ui/empty-state";
+import { EnhancedDocumentUploader } from "@/components/documents/EnhancedDocumentUploader";
 
 // Document type definition
 interface Document {
@@ -400,254 +407,159 @@ export default function DocumentsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Documents</h1>
-
-      {/* Search and Filter */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search documents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-        <div className="flex gap-2">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => setShowVectorOnly(!showVectorOnly)}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-md ${
-              showVectorOnly
-                ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
-                : 'bg-white border-slate-300 text-slate-700'
-            }`}
-            title={showVectorOnly ? "Showing only documents with vector embeddings" : "Show all documents"}
-          >
-            <Filter size={18} />
-            <span>AI Searchable</span>
-          </button>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">
+          <AnimatedGradientText>Documents</AnimatedGradientText>
+        </h1>
+        <div className="flex items-center gap-2">
           <button
             onClick={handleRefresh}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-md ${
-              isLoading || isRefreshDisabled || isRateLimited
-                ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
-                : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"
-            }`}
-            disabled={isLoading || isRefreshDisabled || isRateLimited}
-            title={
-              isRateLimited
-                ? "Rate limited. Please wait before refreshing again"
-                : isRefreshDisabled
-                  ? "Please wait before refreshing again"
-                  : "Refresh documents"
-            }
+            disabled={isLoading || isRefreshDisabled}
+            className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 px-2 py-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <RefreshCw size={18} className={isLoading ? "animate-spin" : ""} />
-            <span>
-              {isLoading
-                ? "Loading..."
-                : isRateLimited
-                  ? "Rate limited..."
-                  : isRefreshDisabled
-                    ? "Please wait..."
-                    : "Refresh"
-              }
-            </span>
+            <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
+            <span>Refresh</span>
           </button>
         </div>
-        <label className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          {isUploading ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <FileUp size={18} />
-          )}
-          <span>{isUploading ? `Uploading ${uploadProgress}%` : 'Upload'}</span>
-        </label>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-md">
-          <AlertCircle size={20} />
-          <span>{error}</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Document Uploader */}
+        <div className="md:col-span-1">
+          <EnhancedDocumentUploader
+            onUploadComplete={(result) => {
+              // Refresh the documents list after upload
+              fetchDocuments();
+            }}
+          />
         </div>
-      )}
 
-      {/* Upload Progress */}
-      {isUploading && uploadProgress > 0 && (
-        <div className="w-full bg-slate-200 rounded-full h-2.5">
-          <div
-            className="bg-indigo-600 h-2.5 rounded-full"
-            style={{ width: `${uploadProgress}%` }}
-          ></div>
-        </div>
-      )}
+        {/* Document List */}
+        <div className="md:col-span-2">
+          {isLoading ? (
+            <LoadingState message="Loading documents..." variant="card" size="medium" />
+          ) : error ? (
+            <ErrorMessage message={error} variant="error" size="sm" onRetry={handleRefresh} />
+          ) : documents.length === 0 ? (
+            <EmptyState
+              title="No documents found"
+              description="Upload your first document to get started"
+              icon={<FileText size={48} className="text-gray-400" />}
+            />
+          ) : (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Document Library</h2>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Search documents..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
+                    />
+                  </div>
 
-      {/* Actions Bar */}
-      {selectedDocuments.length > 0 && (
-        <div className="flex items-center gap-4 p-3 bg-slate-100 rounded-md">
-          <span className="text-slate-600">
-            {selectedDocuments.length} document(s) selected
-          </span>
-          <div className="flex-1"></div>
-          <button
-            onClick={downloadSelectedDocuments}
-            className="flex items-center gap-1 px-3 py-1 text-slate-600 hover:text-slate-900"
-          >
-            <Download size={18} />
-            <span>Download</span>
-          </button>
-          <button
-            onClick={deleteSelectedDocuments}
-            className="flex items-center gap-1 px-3 py-1 text-red-600 hover:text-red-800"
-          >
-            <Trash2 size={18} />
-            <span>Delete</span>
-          </button>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-8">
-          <Loader2 size={32} className="animate-spin text-indigo-600" />
-          <span className="ml-2 text-slate-600">Loading documents...</span>
-        </div>
-      )}
-
-      {/* Documents Table */}
-      {!isLoading && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="w-12 px-4 py-3 text-left">
-                  <input
-                    type="checkbox"
-                    checked={selectedDocuments.length === filteredDocuments.length && filteredDocuments.length > 0}
-                    onChange={() => {
-                      if (selectedDocuments.length === filteredDocuments.length) {
-                        setSelectedDocuments([]);
-                      } else {
-                        setSelectedDocuments(filteredDocuments.map(doc => doc.id));
-                      }
-                    }}
-                    className="rounded"
-                  />
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Name</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Category</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Size</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Last Modified</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">AI Searchable</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {filteredDocuments.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
-                    No documents found
-                  </td>
-                </tr>
-              ) : (
-                filteredDocuments.map((doc) => (
-                  <tr
-                    key={doc.id}
-                    className={`hover:bg-slate-50 ${
-                      selectedDocuments.includes(doc.id) ? "bg-indigo-50" : ""
-                    }`}
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedDocuments.includes(doc.id)}
-                        onChange={() => toggleDocumentSelection(doc.id)}
-                        className="rounded"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {getFileIcon(doc.type)}
-                        <span>{doc.name}</span>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      id="vectorOnly"
+                      checked={showVectorOnly}
+                      onChange={(e) => setShowVectorOnly(e.target.checked)}
+                      className="rounded text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="vectorOnly" className="text-sm text-gray-700">
+                      Vectorized Only
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-2 text-sm text-gray-500">
+                Showing {filteredDocuments.length} of {documents.length} documents
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3">
+                {filteredDocuments.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="text-indigo-600" size={20} />
+                      <div>
+                        <div className="font-medium">{doc.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {formatFileSize(doc.size)} • {new Date(doc.uploadedAt).toLocaleDateString()}
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">{doc.category}</td>
-                    <td className="px-4 py-3 text-slate-600">{formatFileSize(doc.size)}</td>
-                    <td className="px-4 py-3 text-slate-600">{formatDate(doc.uploadedAt)}</td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {doc.vectorEmbedding ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Yes
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                          No
+                      {doc.vectorEmbedding && (
+                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                          Vectorized
                         </span>
                       )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handlePreviewDocument(doc)}
-                          className="p-1 text-slate-600 hover:text-indigo-600"
-                          title="Preview"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          onClick={() => downloadDocument(doc)}
-                          className="p-1 text-slate-600 hover:text-indigo-600"
-                          title="Download"
-                        >
-                          <Download size={16} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to delete "${doc.name}"?`)) {
-                              setSelectedDocuments([doc.id]);
-                              deleteSelectedDocuments();
-                            }
-                          }}
-                          className="p-1 text-slate-600 hover:text-red-600"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      {doc.category && (
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                          {doc.category}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handlePreviewDocument(doc)}
+                        className="p-1 text-gray-500 hover:text-indigo-600"
+                        title="Preview"
+                      >
+                        <Eye size={18} />
+                      </button>
+                      <button
+                        onClick={() => downloadDocument(doc)}
+                        className="p-1 text-gray-500 hover:text-indigo-600"
+                        title="Download"
+                      >
+                        <Download size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Document Preview Modal */}
       {previewDocument && (
-        <DocumentPreview
-          document={previewDocument}
-          onClose={closePreview}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">{previewDocument.name}</h3>
+              <button
+                onClick={closePreview}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              <DocumentPreview document={previewDocument} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -30,7 +30,7 @@ const NangoButton = ({
   providerConfigKey: string,
   connectionId: string,
   onSuccess: () => void,
-  onError: (error: any) => void,
+  onError: (error: unknown) => void,
   className?: string
 }) => {
   return (
@@ -107,7 +107,7 @@ export default function NangoConnections() {
   };
 
   // Function to handle connection error
-  const handleError = (error: any) => {
+  const handleError = (error: unknown) => {
     console.error("Connection error:", error);
     alert(`Failed to connect: ${error.message || "Unknown error"}`);
   };

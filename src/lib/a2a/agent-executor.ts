@@ -1,6 +1,6 @@
 import { Agent, AgentExecutionResult } from '../validation/schemas';
 import { getLLMSettings } from '../llm-settings';
-import litellm from 'litellm';
+import { completion } from 'litellm';
 import * as surrealDB from '../surreal-client';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -60,8 +60,6 @@ export async function executeAgentWithA2A(
     // Get LLM settings
     const llmSettings = await getLLMSettings();
 
-    // Set the API key for LiteLLM
-    litellm.apiKey = llmSettings.apiKey;
     const defaultModel = agent.model || llmSettings.model || 'gpt-3.5-turbo';
 
     // Report progress
@@ -95,11 +93,12 @@ export async function executeAgentWithA2A(
     ];
 
     // Call the LLM
-    const response = await litellm.chatCompletion({
+    const response = await completion({
       model: defaultModel,
       messages,
       temperature: 0.7,
       max_tokens: 1000,
+      api_key: llmSettings.apiKey,
     });
 
     // Get the response content

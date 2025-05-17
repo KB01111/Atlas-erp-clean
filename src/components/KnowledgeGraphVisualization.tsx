@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { MagicCard } from "@/components/magicui/magic-card";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
 import { KnowledgeNode, NodeType, getKnowledgeEdges } from "@/lib/arango-knowledge-service";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -22,7 +22,7 @@ import {
 
 interface KnowledgeGraphVisualizationProps {
   nodes?: KnowledgeNode[];
-  edges?: any[];
+  edges?: unknown[];
   isLoading?: boolean;
   error?: string | null;
   onRefresh?: () => void;
@@ -135,12 +135,12 @@ export default function KnowledgeGraphVisualization({
   }
 
   return (
-    <ShineBorder
+    <BorderContainer
       borderColor="rgba(59, 130, 246, 0.2)"
       shineBorderColor="rgba(59, 130, 246, 0.6)"
       borderRadius="0.75rem"
       className="w-full"
-    >
+     variant="primary" rounded="xl">
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-6">
           <AnimatedGradientText
@@ -176,14 +176,14 @@ export default function KnowledgeGraphVisualization({
                 <ZoomIn size={16} />
               </button>
             </div>
-            <ShimmerButton
+            <EnhancedActionButton
               onClick={handleRefresh}
               disabled={isRefreshing}
               className="px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground flex items-center gap-2"
-            >
+             variant="default" size="sm" hover="lift">
               {isRefreshing ? <RefreshCw className="animate-spin" size={14} /> : <RefreshCw size={14} />}
               <span>Refresh</span>
-            </ShimmerButton>
+            </EnhancedActionButton>
           </div>
         </div>
 
@@ -203,11 +203,11 @@ export default function KnowledgeGraphVisualization({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredNodes.map((node) => (
-                  <MagicCard
+                  <EnhancedCard
                     key={node.id}
                     className={`p-4 rounded-lg border ${getNodeColor(node.type)}`}
                     focus={selectedNode?.id === node.id}
-                    onClick={() => setSelectedNode(node.id === selectedNode?.id ? null : node)}
+                    onClick={() = interactive hoverEffect="shadow"> setSelectedNode(node.id === selectedNode?.id ? null : node)}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       {getNodeIcon(node.type)}
@@ -222,13 +222,13 @@ export default function KnowledgeGraphVisualization({
                         <span>{node.source}</span>
                       </div>
                     )}
-                  </MagicCard>
+                  </EnhancedCard>
                 ))}
               </div>
             )}
           </div>
         </div>
       </div>
-    </ShineBorder>
+    </BorderContainer>
   );
 }

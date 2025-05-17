@@ -16,23 +16,23 @@ async function ensureInitialized() {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await ensureInitialized();
-    
-    const { id } = params;
+
+    const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
     const edgeType = searchParams.get('edgeType') as arangoKnowledgeService.EdgeType | null;
     const direction = searchParams.get('direction') as 'outgoing' | 'incoming' | 'both' | null;
-    
+
     // Get connected nodes
     const connectedNodes = await arangoKnowledgeService.getConnectedNodes(
       id,
       edgeType || undefined,
       direction || 'both'
     );
-    
+
     return NextResponse.json({
       connections: connectedNodes,
     });
@@ -50,14 +50,14 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await ensureInitialized();
-    
-    const { id } = params;
+
+    const { id } = await params;
     const body = await request.json();
-    
+
     // Validate request body
     if (!body.type || !body.targetKey) {
       return NextResponse.json(
@@ -65,7 +65,7 @@ export async function POST(
         { status: 400 }
       );
     }
-    
+
     // Create the edge
     const edge = await arangoKnowledgeService.createEdge(
       body.type,
@@ -74,7 +74,7 @@ export async function POST(
       body.weight,
       body.metadata
     );
-    
+
     return NextResponse.json({
       edge,
     });

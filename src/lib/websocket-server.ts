@@ -94,7 +94,7 @@ export function initWebSocketServer(server: HTTPServer): SocketIOServer {
   try {
     // Try to get the existing Socket.IO server from the global scope
     // This is set in server.js
-    const globalAny = global as any;
+    const globalAny = global as unknown;
     if (globalAny.__ATLAS_ERP_IO) {
       io = globalAny.__ATLAS_ERP_IO;
       console.log('Using existing WebSocket server from server.js');
@@ -157,7 +157,7 @@ export function getWebSocketServer(): SocketIOServer | null {
  */
 export function sendStatusUpdate(update: StatusUpdate): void {
   // Try to get the WebSocket server from the global scope
-  const globalAny = global as any;
+  const globalAny = global as unknown;
   const socketIo = io || globalAny.__ATLAS_ERP_IO;
 
   if (!socketIo) {
@@ -174,7 +174,7 @@ export function sendStatusUpdate(update: StatusUpdate): void {
  */
 export function sendMetricsUpdate(update: MetricsUpdate): void {
   // Try to get the WebSocket server from the global scope
-  const globalAny = global as any;
+  const globalAny = global as unknown;
   const socketIo = io || globalAny.__ATLAS_ERP_IO;
 
   if (!socketIo) {
@@ -191,7 +191,7 @@ export function sendMetricsUpdate(update: MetricsUpdate): void {
  */
 export function sendAgentProgressUpdate(update: AgentProgressUpdate): void {
   // Try to get the WebSocket server from the global scope
-  const globalAny = global as any;
+  const globalAny = global as unknown;
   const socketIo = io || globalAny.__ATLAS_ERP_IO;
 
   if (!socketIo) {
@@ -212,7 +212,7 @@ export function sendAgentProgressUpdate(update: AgentProgressUpdate): void {
  */
 export function sendWorkflowProgressUpdate(update: WorkflowProgressUpdate): void {
   // Try to get the WebSocket server from the global scope
-  const globalAny = global as any;
+  const globalAny = global as unknown;
   const socketIo = io || globalAny.__ATLAS_ERP_IO;
 
   if (!socketIo) {
@@ -233,7 +233,7 @@ export function sendWorkflowProgressUpdate(update: WorkflowProgressUpdate): void
  */
 export function sendDocumentProcessingUpdate(update: DocumentProcessingUpdate): void {
   // Try to get the WebSocket server from the global scope
-  const globalAny = global as any;
+  const globalAny = global as unknown;
   const socketIo = io || globalAny.__ATLAS_ERP_IO;
 
   if (!socketIo) {
@@ -254,7 +254,7 @@ export function sendDocumentProcessingUpdate(update: DocumentProcessingUpdate): 
  */
 export function sendKnowledgeGraphUpdate(update: KnowledgeGraphUpdate): void {
   // Try to get the WebSocket server from the global scope
-  const globalAny = global as any;
+  const globalAny = global as unknown;
   const socketIo = io || globalAny.__ATLAS_ERP_IO;
 
   if (!socketIo) {
@@ -270,9 +270,9 @@ export function sendKnowledgeGraphUpdate(update: KnowledgeGraphUpdate): void {
  * @param message Message to send
  * @param room Optional room to send the message to
  */
-export function sendWebSocketMessage(message: any, room?: string): void {
+export function sendWebSocketMessage(message: unknown, room?: string): void {
   // Try to get the WebSocket server from the global scope
-  const globalAny = global as any;
+  const globalAny = global as unknown;
   const socketIo = io || globalAny.__ATLAS_ERP_IO;
 
   if (!socketIo) {

@@ -24,8 +24,8 @@ export interface PipedreamWorkflow {
   updated_at: string;
   orgId?: string;
   workspaceId?: string;
-  steps?: any[];
-  settings?: any;
+  steps?: unknown[];
+  settings?: unknown;
   metadata?: Record<string, any>;
 }
 
@@ -41,7 +41,7 @@ export interface PipedreamSource {
   updated_at: string;
   type: string;
   key?: string;
-  settings?: any;
+  settings?: unknown;
   metadata?: Record<string, any>;
 }
 
@@ -53,7 +53,7 @@ export interface PipedreamWebhookEvent {
   timestamp: string;
   workflowId: string;
   sourceId?: string;
-  data: any;
+  data: unknown;
   metadata?: Record<string, any>;
 }
 
@@ -97,7 +97,7 @@ export class PipedreamClient {
   private async request<T>(
     path: string,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
-    data?: any
+    data?: unknown
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const headers = {
@@ -233,7 +233,7 @@ export class PipedreamClient {
    * @param data Trigger data
    * @returns Execution details
    */
-  async triggerWorkflow(id: string, data: any): Promise<any> {
+  async triggerWorkflow(id: string, data: unknown): Promise<any> {
     const path = `/workflows/${id}/trigger`;
     return this.request<any>(path, 'POST', data);
   }
@@ -263,7 +263,8 @@ export async function createPipedreamClient(): Promise<PipedreamClient> {
   }
 }
 
-export default {
+const defaultExport = {
   createPipedreamClient,
   PipedreamClient,
 };
+export default defaultExport;;

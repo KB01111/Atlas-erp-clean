@@ -38,7 +38,7 @@ const PerformanceOptimizer: React.FC<PerformanceOptimizerProps> = ({ children })
     const checkBattery = async () => {
       if ('getBattery' in navigator) {
         try {
-          // @ts-ignore - getBattery is not in the TypeScript navigator type
+          // @ts-expect-error - getBattery is not in the TypeScript navigator type
           const battery = await navigator.getBattery();
 
           // Check if battery level is low (less than 20%)

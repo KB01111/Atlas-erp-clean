@@ -1,12 +1,12 @@
 "use client";
 
-import React from 'react';
+import * as React from "react";
+import { cn } from "@/lib/utils";
 import { Loader2, LoaderCircle } from 'lucide-react';
-import { ShineBorder } from './shine-border';
-import { AnimatedGradientText } from './animated-gradient-text';
-import { MagicCard } from '@/components/magicui/magic-card';
-import { cn } from '@/lib/utils';
+import { cva, type VariantProps } from "class-variance-authority";
 import { motion } from 'motion/react';
+import { EnhancedCard } from './enhanced-card';
+import { AnimatedGradientText } from './animated-gradient-text';
 
 interface LoadingStateProps {
   message?: string;
@@ -218,13 +218,11 @@ export function LoadingState({
   if (variant === 'card') {
     return (
       <div className={cn(`${sizeClasses[size]}`, className)}>
-        <ShineBorder
-          borderColor="rgba(59, 130, 246, 0.2)"
-          shineBorderColor="rgba(59, 130, 246, 0.6)"
-          borderRadius="0.75rem"
+        <EnhancedCard
           className="h-full"
+          gradient
         >
-          <div className="bg-card rounded-xl shadow-sm p-6 h-full flex flex-col items-center justify-center">
+          <div className="p-6 h-full flex flex-col items-center justify-center">
             {showSpinner && (
               <div className="mb-4">
                 {renderLoader()}
@@ -253,58 +251,53 @@ export function LoadingState({
               </div>
             )}
           </div>
-        </ShineBorder>
+        </EnhancedCard>
       </div>
     );
   }
 
-  // Fancy variant with MagicCard
+  // Fancy variant with EnhancedCard
   if (variant === 'fancy') {
     return (
       <div className={cn(`${sizeClasses[size]}`, className)}>
-        <MagicCard
-          className="h-full rounded-xl"
-          focus
-          glare
-          glareOpacity={0.2}
+        <EnhancedCard
+          className="h-full"
+          gradient
+          shine
+          interactive
+          hoverEffect="glow"
         >
-          <ShineBorder
-            borderRadius="0.75rem"
-            className="p-0.5 h-full"
-            shineBorderColor="var(--primary)"
-          >
-            <div className="bg-card rounded-[0.7rem] p-6 h-full flex flex-col items-center justify-center">
-              {showSpinner && (
-                <div className="mb-4">
-                  {renderLoader()}
-                </div>
-              )}
+          <div className="p-6 h-full flex flex-col items-center justify-center">
+            {showSpinner && (
+              <div className="mb-4">
+                {renderLoader()}
+              </div>
+            )}
 
-              <AnimatedGradientText
-                text={message}
-                className="text-lg font-medium"
-                gradient="linear-gradient(to right, var(--primary), var(--accent), var(--primary))"
-                duration={3}
-              />
+            <AnimatedGradientText
+              text={message}
+              className="text-lg font-medium"
+              gradient="linear-gradient(to right, var(--primary), var(--accent), var(--primary))"
+              duration={3}
+            />
 
-              {showProgress && (
-                <div className="w-full max-w-xs mt-4">
-                  <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-                    <motion.div
-                      className="bg-primary h-2.5 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progress}%` }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                  <div className="text-xs text-muted-foreground text-center mt-1">
-                    {progress}%
-                  </div>
+            {showProgress && (
+              <div className="w-full max-w-xs mt-4">
+                <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                  <motion.div
+                    className="bg-primary h-2.5 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
                 </div>
-              )}
-            </div>
-          </ShineBorder>
-        </MagicCard>
+                <div className="text-xs text-muted-foreground text-center mt-1">
+                  {progress}%
+                </div>
+              </div>
+            )}
+          </div>
+        </EnhancedCard>
       </div>
     );
   }

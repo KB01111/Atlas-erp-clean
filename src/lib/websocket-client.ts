@@ -121,7 +121,7 @@ export function unsubscribeFromRoom(room: string): void {
  * @param eventType Event type
  * @param listener Event listener function
  */
-export function addEventListener(eventType: EventType, listener: Function): void {
+export function addEventListener(eventType: EventType, listener: (...args: unknown[]) => any): void {
   if (!eventListeners[eventType]) {
     eventListeners[eventType] = [];
   }
@@ -134,7 +134,7 @@ export function addEventListener(eventType: EventType, listener: Function): void
  * @param eventType Event type
  * @param listener Event listener function
  */
-export function removeEventListener(eventType: EventType, listener: Function): void {
+export function removeEventListener(eventType: EventType, listener: (...args: unknown[]) => any): void {
   if (!eventListeners[eventType]) {
     return;
   }
@@ -150,7 +150,7 @@ export function removeEventListener(eventType: EventType, listener: Function): v
  * @param eventType Event type
  * @param data Event data
  */
-function triggerEventListeners(eventType: EventType, data: any): void {
+function triggerEventListeners(eventType: EventType, data: unknown): void {
   if (!eventListeners[eventType]) {
     return;
   }

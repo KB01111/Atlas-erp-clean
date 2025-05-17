@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { NodeType } from '@/lib/arango-knowledge-service';
 import { Brain, FileText, Lightbulb, Database, HelpCircle, MessageSquare, Search, Loader2, AlertCircle, Check } from 'lucide-react';
 
@@ -107,8 +107,8 @@ export default function KnowledgeNodeSelector({
   };
 
   return (
-    <MagicCard className={`rounded-xl overflow-hidden ${className}`}>
-      <ShineBorder borderRadius="0.75rem" className="p-0.5">
+    <EnhancedCard className={`rounded-xl overflow-hidden ${className}`} interactive hoverEffect="shadow">
+      <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
         <div className="bg-card rounded-xl shadow-sm p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <Brain className="mr-2 text-primary" size={20} />
@@ -126,17 +126,17 @@ export default function KnowledgeNodeSelector({
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
                 placeholder="Search knowledge nodes..."
               />
-              <ShimmerButton
+              <EnhancedActionButton
                 onClick={searchNodes}
                 disabled={isLoading}
                 className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground disabled:opacity-50"
-              >
+               variant="default" size="sm" hover="lift">
                 {isLoading ? (
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   <Search size={16} />
                 )}
-              </ShimmerButton>
+              </EnhancedActionButton>
             </div>
             
             {/* Error message */}
@@ -191,17 +191,17 @@ export default function KnowledgeNodeSelector({
               >
                 Cancel
               </button>
-              <ShimmerButton
-                onClick={() => selectedNodeId && onNodeSelected(selectedNodeId, nodes.find(n => n.id === selectedNodeId)?.name || '')}
+              <EnhancedActionButton
+                onClick={() = variant="default" size="sm" hover="lift"> selectedNodeId && onNodeSelected(selectedNodeId, nodes.find(n => n.id === selectedNodeId)?.name || '')}
                 disabled={!selectedNodeId}
                 className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground disabled:opacity-50"
               >
                 Select Node
-              </ShimmerButton>
+              </EnhancedActionButton>
             </div>
           </div>
         </div>
-      </ShineBorder>
-    </MagicCard>
+      </BorderContainer>
+    </EnhancedCard>
   );
 }

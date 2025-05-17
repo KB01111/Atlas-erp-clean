@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { Tooltip } from "@/components/ui/tooltip";
 import { 
@@ -156,13 +156,13 @@ export default function PipedreamIntegration({ className = '' }: PipedreamIntegr
               {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             </button>
           </Tooltip>
-          <ShimmerButton
-            onClick={() => setShowWorkflowModal(true)}
+          <EnhancedActionButton
+            onClick={() = variant="default" size="sm" hover="lift"> setShowWorkflowModal(true)}
             className="px-3 py-2 bg-indigo-600 text-white rounded-md"
           >
             <Plus size={16} className="mr-1" />
             New Workflow
-          </ShimmerButton>
+          </EnhancedActionButton>
         </div>
       </div>
 
@@ -195,19 +195,19 @@ export default function PipedreamIntegration({ className = '' }: PipedreamIntegr
         ) : workflows.length === 0 ? (
           <div className="bg-slate-50 rounded-md p-6 text-center">
             <p className="text-slate-500">No workflows found</p>
-            <ShimmerButton
-              onClick={() => setShowWorkflowModal(true)}
+            <EnhancedActionButton
+              onClick={() = variant="default" size="sm" hover="lift"> setShowWorkflowModal(true)}
               className="mt-3 px-3 py-2 bg-indigo-600 text-white rounded-md"
             >
               <Plus size={16} className="mr-1" />
               Create Workflow
-            </ShimmerButton>
+            </EnhancedActionButton>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {workflows.map((workflow) => (
-              <MagicCard key={workflow.id} className="overflow-hidden">
-                <ShineBorder borderRadius="0.75rem" className="p-0.5">
+              <EnhancedCard key={workflow.id} className="overflow-hidden" interactive hoverEffect="shadow">
+                <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
                   <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-medium text-base truncate" title={workflow.name}>
@@ -274,8 +274,8 @@ export default function PipedreamIntegration({ className = '' }: PipedreamIntegr
                       </div>
                     </div>
                   </div>
-                </ShineBorder>
-              </MagicCard>
+                </BorderContainer>
+              </EnhancedCard>
             ))}
           </div>
         )}
@@ -292,19 +292,19 @@ export default function PipedreamIntegration({ className = '' }: PipedreamIntegr
         ) : sources.length === 0 ? (
           <div className="bg-slate-50 rounded-md p-6 text-center">
             <p className="text-slate-500">No sources found</p>
-            <ShimmerButton
-              onClick={() => setShowSourceModal(true)}
+            <EnhancedActionButton
+              onClick={() = variant="default" size="sm" hover="lift"> setShowSourceModal(true)}
               className="mt-3 px-3 py-2 bg-indigo-600 text-white rounded-md"
             >
               <Plus size={16} className="mr-1" />
               Create Source
-            </ShimmerButton>
+            </EnhancedActionButton>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sources.map((source) => (
-              <MagicCard key={source.id} className="overflow-hidden">
-                <ShineBorder borderRadius="0.75rem" className="p-0.5">
+              <EnhancedCard key={source.id} className="overflow-hidden" interactive hoverEffect="shadow">
+                <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
                   <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-medium text-base truncate" title={source.name}>
@@ -359,8 +359,8 @@ export default function PipedreamIntegration({ className = '' }: PipedreamIntegr
                       </div>
                     </div>
                   </div>
-                </ShineBorder>
-              </MagicCard>
+                </BorderContainer>
+              </EnhancedCard>
             ))}
           </div>
         )}
@@ -405,8 +405,8 @@ export default function PipedreamIntegration({ className = '' }: PipedreamIntegr
               >
                 Cancel
               </button>
-              <ShimmerButton
-                onClick={() => triggerWorkflow(selectedWorkflow.id)}
+              <EnhancedActionButton
+                onClick={() = variant="default" size="sm" hover="lift"> triggerWorkflow(selectedWorkflow.id)}
                 className="px-3 py-2 bg-indigo-600 text-white rounded-md text-sm"
                 disabled={triggerLoading}
               >
@@ -421,7 +421,7 @@ export default function PipedreamIntegration({ className = '' }: PipedreamIntegr
                     Trigger Workflow
                   </>
                 )}
-              </ShimmerButton>
+              </EnhancedActionButton>
             </div>
           </div>
         </div>

@@ -1,9 +1,8 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 @import "tailwindcss/preflight";
 @tailwind utilities;
 
-@custom-variant dark (&:is(.dark *));
+/* Dark mode is handled by the class-based approach */
 
 @layer base {
   :root {
@@ -12,6 +11,10 @@
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
+
+    /* Animation and transition durations */
+    --animation-duration: 0.2s;
+    --transition-duration: 0.2s;
 
     /* Enhanced color palette with more vibrant colors */
     --background: oklch(1 0 0);
@@ -61,6 +64,10 @@
   }
 
   .dark {
+    /* Animation and transition durations */
+    --animation-duration: 0.2s;
+    --transition-duration: 0.2s;
+
     /* Enhanced dark mode colors for better contrast and visual appeal */
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
@@ -111,55 +118,65 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-[color:var(--border)];
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
 @layer utilities {
-  /* Animation keyframes */
-  @keyframes ripple {
+  /* Basic animation keyframes for shadcn components */
+  @keyframes pulse-subtle {
     0%, 100% {
-      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
     }
     50% {
-      transform: translate(-50%, -50%) scale(0.9);
-    }
-  }
-
-  @keyframes shimmer-slide {
-    to {
-      transform: translate(calc(100cqw - 100%), 0);
-    }
-  }
-
-  @keyframes spin-around {
-    0% {
-      transform: translateZ(0) rotate(0);
-    }
-    15%, 35% {
-      transform: translateZ(0) rotate(90deg);
-    }
-    65%, 85% {
-      transform: translateZ(0) rotate(270deg);
-    }
-    100% {
-      transform: translateZ(0) rotate(360deg);
+      opacity: 0.85;
     }
   }
 
   /* Animation variables */
-  .animate-ripple {
-    animation: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
+  .pulse-subtle {
+    animation: pulse-subtle 0.5s ease-in-out;
   }
 
-  .animate-shimmer-slide {
-    animation: shimmer-slide var(--speed, 3s) ease-in-out infinite alternate;
+  /* Gradient text utility */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r;
   }
 
-  .animate-spin-around {
-    animation: spin-around calc(var(--speed, 3s) * 2) infinite linear;
+  /* Transition utilities */
+  .transition-standard {
+    @apply transition-all duration-200;
+  }
+
+  /* Border utilities */
+  .border-standard {
+    @apply border border-border rounded-md;
+  }
+
+  /* Shadow utilities */
+  .shadow-standard {
+    @apply shadow-md;
+  }
+
+  /* Hover effect utilities */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-1;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  .hover-shadow {
+    @apply transition-shadow duration-200 hover:shadow-lg;
+  }
+
+  .hover-border {
+    @apply transition-colors duration-200 hover:border-primary/50;
   }
 }

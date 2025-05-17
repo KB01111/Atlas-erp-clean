@@ -4,7 +4,7 @@ import { isServiceAvailable, mockPipedream } from "@/lib/mock-service-provider";
 
 /**
  * POST /api/integrations/pipedream/trigger
- * 
+ *
  * Triggers a Pipedream workflow with the provided data
  */
 export async function POST(req: NextRequest) {
@@ -51,6 +51,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Trigger workflow using Pipedream API
+    // Ensure client is defined
+    if (!client) {
+      return NextResponse.json(
+        { error: "Pipedream client is not available" },
+        { status: 500 }
+      );
+    }
+
     const result = await client.triggerWorkflow(workflowId, data);
 
     return NextResponse.json({

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { WorkflowNode, WorkflowEdge } from '@/lib/workflow-service';
 import { NodeType } from '@/lib/arango-knowledge-service';
 import { Plus, Trash, ArrowRight, Settings, Play, Clock, Brain, FileText } from 'lucide-react';
@@ -16,7 +16,7 @@ interface WorkflowBuilderProps {
     nodes: WorkflowNode[];
     edges: WorkflowEdge[];
   };
-  onChange: (workflow: any) => void;
+  onChange: (workflow: unknown) => void;
   onExecute?: (workflowId: string, options?: { useTemporal?: boolean }) => void;
   readOnly?: boolean;
 }
@@ -289,6 +289,17 @@ export default function WorkflowBuilder({
     setIsEditingEdgeLabel(null);
   };
 
+  // Update node properties
+  const updateNode = (nodeId: string, updates: Partial<WorkflowNode>) => {
+    if (readOnly) return;
+
+    setNodes(nodes.map(node =>
+      node.id === nodeId
+        ? { ...node, ...updates }
+        : node
+    ));
+  };
+
   // Get node color based on type
   const getNodeColor = (type: string) => {
     switch (type) {
@@ -333,73 +344,97 @@ export default function WorkflowBuilder({
     <div className="flex flex-col h-full">
       {!readOnly && (
         <div className="mb-4 flex gap-2">
-          <ShimmerButton
+          <EnhancedActionButton
             onClick={() => addNode('input')}
             className="px-2 py-1 text-sm bg-green-500 text-white rounded-md"
+            variant="default"
+            size="sm"
+            hover="lift"
           >
             <Plus size={14} className="mr-1" />
             Input
-          </ShimmerButton>
-          <ShimmerButton
+          </EnhancedActionButton>
+          <EnhancedActionButton
             onClick={() => addNode('agent')}
             className="px-2 py-1 text-sm bg-blue-500 text-white rounded-md"
+            variant="default"
+            size="sm"
+            hover="lift"
           >
             <Plus size={14} className="mr-1" />
             Agent
-          </ShimmerButton>
-          <ShimmerButton
+          </EnhancedActionButton>
+          <EnhancedActionButton
             onClick={() => addNode('condition')}
             className="px-2 py-1 text-sm bg-amber-500 text-white rounded-md"
+            variant="default"
+            size="sm"
+            hover="lift"
           >
             <Plus size={14} className="mr-1" />
             Condition
-          </ShimmerButton>
-          <ShimmerButton
+          </EnhancedActionButton>
+          <EnhancedActionButton
             onClick={() => addNode('transform')}
             className="px-2 py-1 text-sm bg-purple-500 text-white rounded-md"
+            variant="default"
+            size="sm"
+            hover="lift"
           >
             <Plus size={14} className="mr-1" />
             Transform
-          </ShimmerButton>
-          <ShimmerButton
+          </EnhancedActionButton>
+          <EnhancedActionButton
             onClick={() => addNode('output')}
             className="px-2 py-1 text-sm bg-red-500 text-white rounded-md"
+            variant="default"
+            size="sm"
+            hover="lift"
           >
             <Plus size={14} className="mr-1" />
             Output
-          </ShimmerButton>
-          <ShimmerButton
+          </EnhancedActionButton>
+          <EnhancedActionButton
             onClick={() => addNode('knowledge')}
             className="px-2 py-1 text-sm bg-indigo-500 text-white rounded-md"
+            variant="default"
+            size="sm"
+            hover="lift"
           >
             <Plus size={14} className="mr-1" />
             Knowledge
-          </ShimmerButton>
+          </EnhancedActionButton>
 
           {onExecute && (
             <div className="ml-auto flex gap-2">
-              <ShimmerButton
+              <EnhancedActionButton
                 onClick={() => onExecute(workflow.id)}
                 className="px-2 py-1 text-sm bg-green-600 text-white rounded-md"
+                variant="default"
+                size="sm"
+                hover="lift"
               >
                 <Play size={14} className="mr-1" />
                 Execute
-              </ShimmerButton>
-              <ShimmerButton
+              </EnhancedActionButton>
+              <EnhancedActionButton
                 onClick={() => onExecute(workflow.id, { useTemporal: true })}
                 className="px-2 py-1 text-sm bg-blue-600 text-white rounded-md"
+                variant="default"
+                size="sm"
+                hover="lift"
               >
                 <Clock size={14} className="mr-1" />
                 Temporal
-              </ShimmerButton>
+              </EnhancedActionButton>
             </div>
           )}
         </div>
       )}
 
       <div className="flex-1">
-        <MagicCard className="h-full overflow-hidden">
-          <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+        <EnhancedCard className="h-full overflow-hidden" interactive hoverEffect="shadow">
+          <BorderContainer variant="primary" rounded="xl" className="p-0.5 h-full">
             <div
               ref={canvasRef}
               className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden h-full relative"
@@ -552,15 +587,15 @@ export default function WorkflowBuilder({
                 );
               })}
             </div>
-          </ShineBorder>
-        </MagicCard>
+          </BorderContainer>
+        </EnhancedCard>
       </div>
 
       {/* Selected node controls */}
       {selectedNode && !readOnly && (
         <div className="mt-4">
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer variant="primary" rounded="xl" className="p-0.5">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold">Node Properties</h3>
@@ -593,7 +628,7 @@ export default function WorkflowBuilder({
                           <label className="text-xs text-muted-foreground">Type</label>
                           <select
                             value={node.type}
-                            onChange={(e) => updateNode(node.id, { type: e.target.value as any })}
+                            onChange={(e) => updateNode(node.id, { type: e.target.value as unknown })}
                             className="w-full px-2 py-1 text-sm bg-muted rounded border border-input"
                           >
                             <option value="agent">Agent</option>
@@ -654,16 +689,16 @@ export default function WorkflowBuilder({
                   })()}
                 </div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
         </div>
       )}
 
       {/* Selected edge controls */}
       {selectedEdge && !readOnly && (
         <div className="mt-4">
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer variant="primary" rounded="xl" className="p-0.5">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold">Edge Properties</h3>
@@ -702,8 +737,8 @@ export default function WorkflowBuilder({
                   </div>
                 </div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
         </div>
       )}
     </div>

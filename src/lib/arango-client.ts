@@ -97,7 +97,7 @@ export async function initArangoDB(): Promise<Database> {
     }
 
     // Determine the correct credentials based on environment
-    let username = process.env.ARANGO_USER || 'root';
+    const username = process.env.ARANGO_USER || 'root';
     let password = process.env.ARANGO_PASS || process.env.ARANGO_ROOT_PASSWORD || 'atlas';
 
     // In production, prefer ARANGO_PASSWORD over ARANGO_ROOT_PASSWORD for the application user
@@ -191,7 +191,7 @@ export async function getArangoDB(): Promise<Database> {
  * @param bindVars Variables to bind to the query
  * @returns Query result
  */
-export async function query(query: any, bindVars?: Record<string, any>): Promise<any> {
+export async function query(query: unknown, bindVars?: Record<string, any>): Promise<any> {
   const db = await getArangoDB();
   try {
     if (useMockService) {
@@ -307,7 +307,7 @@ export async function ensureGraph(
 export { aql };
 
 // Export default object with all functions
-export default {
+const defaultExport = {
   initArangoDB,
   getArangoDB,
   query,
@@ -315,3 +315,4 @@ export default {
   ensureGraph,
   aql,
 };
+export default defaultExport;;

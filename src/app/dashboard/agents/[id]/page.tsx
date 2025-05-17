@@ -4,53 +4,53 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCopilotReadable } from "@copilotkit/react-core";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { MagicCard } from "@/components/magicui/magic-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
 import AgentConfigForm from "@/components/agents/AgentConfigForm";
 import AgentExecutionMonitor from "@/components/agents/AgentExecutionMonitor";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorMessage } from "@/components/ui/error-message";
-import { Agent } from "@/lib/agent-service";
+import { Agent } from "@/lib/validation/schemas";
 import { ArrowLeft, Save, Play, Bot, History, Settings, Activity } from "lucide-react";
 
 export default function AgentDetailPage() {
   const params = useParams();
   const router = useRouter();
   const agentId = params.id as string;
-  
+
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'config' | 'execution' | 'history'>('config');
   const [executionHistory, setExecutionHistory] = useState<any[]>([]);
-  
+
   // Make the page readable by CopilotKit
   useCopilotReadable({
-    description: "Agent detail page for configuring and executing AI agents",
-    content: "This page allows users to configure, execute, and monitor AI agents.",
+    value: "Agent detail page for configuring and executing AI agents",
+    description: "This page allows users to configure, execute, and monitor AI agents"
   });
-  
+
   // Fetch agent data on component mount
   useEffect(() => {
     fetchAgent();
   }, [agentId]);
-  
+
   // Function to fetch agent data
   const fetchAgent = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch(`/api/agents/${agentId}`);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch agent: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       setAgent(data.agent);
-      
+
       // Fetch execution history
       fetchExecutionHistory();
     } catch (error) {
@@ -60,16 +60,16 @@ export default function AgentDetailPage() {
       setLoading(false);
     }
   };
-  
+
   // Function to fetch execution history
   const fetchExecutionHistory = async () => {
     try {
       const response = await fetch(`/api/agents/${agentId}/runs`);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch execution history: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       setExecutionHistory(data.runs || []);
     } catch (error) {
@@ -77,7 +77,7 @@ export default function AgentDetailPage() {
       // Don't set error state here to avoid blocking the main agent data display
     }
   };
-  
+
   // Function to save agent
   const handleSaveAgent = async (updatedAgent: Agent) => {
     try {
@@ -88,25 +88,25 @@ export default function AgentDetailPage() {
         },
         body: JSON.stringify(updatedAgent),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to update agent: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       setAgent(data.agent);
-      
+
       return Promise.resolve();
     } catch (error) {
       console.error('Error updating agent:', error);
       return Promise.reject(error);
     }
   };
-  
+
   if (loading) {
     return <LoadingState message="Loading agent..." variant="card" size="large" />;
   }
-  
+
   if (error || !agent) {
     return (
       <ErrorMessage
@@ -116,7 +116,7 @@ export default function AgentDetailPage() {
       />
     );
   }
-  
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center mb-8">
@@ -137,14 +137,14 @@ export default function AgentDetailPage() {
           </p>
         </div>
       </div>
-      
+
       {/* Tabs */}
       <div className="flex border-b border-gray-200 mb-6">
         <button
           type="button"
           className={`px-4 py-2 text-sm font-medium ${
-            activeTab === 'config' 
-              ? 'text-primary border-b-2 border-primary' 
+            activeTab === 'config'
+              ? 'text-primary border-b-2 border-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
           onClick={() => setActiveTab('config')}
@@ -157,8 +157,8 @@ export default function AgentDetailPage() {
         <button
           type="button"
           className={`px-4 py-2 text-sm font-medium ${
-            activeTab === 'execution' 
-              ? 'text-primary border-b-2 border-primary' 
+            activeTab === 'execution'
+              ? 'text-primary border-b-2 border-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
           onClick={() => setActiveTab('execution')}
@@ -171,8 +171,8 @@ export default function AgentDetailPage() {
         <button
           type="button"
           className={`px-4 py-2 text-sm font-medium ${
-            activeTab === 'history' 
-              ? 'text-primary border-b-2 border-primary' 
+            activeTab === 'history'
+              ? 'text-primary border-b-2 border-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
           onClick={() => setActiveTab('history')}
@@ -183,7 +183,7 @@ export default function AgentDetailPage() {
           </div>
         </button>
       </div>
-      
+
       {/* Tab content */}
       {activeTab === 'config' && (
         <AgentConfigForm
@@ -191,22 +191,22 @@ export default function AgentDetailPage() {
           onSave={handleSaveAgent}
         />
       )}
-      
+
       {activeTab === 'execution' && (
         <AgentExecutionMonitor
           agent={agent}
         />
       )}
-      
+
       {activeTab === 'history' && (
-        <MagicCard className="rounded-xl overflow-hidden">
-          <ShineBorder borderRadius="0.75rem" className="p-0.5">
+        <EnhancedCard className="rounded-xl overflow-hidden" interactive hoverEffect="shadow">
+          <BorderContainer variant="primary" rounded="xl" className="p-0.5">
             <div className="bg-card rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <Activity className="mr-2 text-primary" size={20} />
                 Execution History
               </h3>
-              
+
               {executionHistory.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <History size={48} className="text-gray-300 mb-2" />
@@ -239,23 +239,26 @@ export default function AgentDetailPage() {
                         )}
                       </div>
                       <div className="mt-2">
-                        <ShimmerButton
+                        <EnhancedActionButton
                           onClick={() => {
                             setActiveTab('execution');
                             // In a real implementation, you would load this specific run
                           }}
                           className="px-3 py-1 text-xs rounded-md font-medium bg-primary text-primary-foreground"
+                          variant="default"
+                          size="sm"
+                          hover="lift"
                         >
                           View Details
-                        </ShimmerButton>
+                        </EnhancedActionButton>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          </ShineBorder>
-        </MagicCard>
+          </BorderContainer>
+        </EnhancedCard>
       )}
     </div>
   );

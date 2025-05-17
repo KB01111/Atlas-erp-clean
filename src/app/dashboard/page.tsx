@@ -3,11 +3,11 @@
 import { DollarSign } from "lucide-react";
 import dynamic from 'next/dynamic';
 import { memo } from 'react';
-import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
+import { Typography } from "@/components/ui/typography";
 
-// Lazy load the enhanced components with optimized loading
-const EnhancedStatusPanel = dynamic(
-  () => import('@/components/EnhancedStatusPanelV2').then(mod => ({
+// Lazy load the components with optimized loading
+const StatusPanel = dynamic(
+  () => import('@/components/dashboard/StatusPanel').then(mod => ({
     default: memo(mod.default)
   })),
   {
@@ -16,8 +16,8 @@ const EnhancedStatusPanel = dynamic(
   }
 );
 
-const EnhancedKPICard = dynamic(
-  () => import('@/components/EnhancedKPICard').then(mod => ({
+const KPICard = dynamic(
+  () => import('@/components/dashboard/KPICard').then(mod => ({
     default: memo(mod.default)
   })),
   {
@@ -26,8 +26,8 @@ const EnhancedKPICard = dynamic(
   }
 );
 
-const EnhancedWelcomeSection = dynamic(
-  () => import('@/components/EnhancedWelcomeSection').then(mod => ({
+const WelcomeSection = dynamic(
+  () => import('@/components/dashboard/WelcomeSection').then(mod => ({
     default: memo(mod.default)
   })),
   {
@@ -36,8 +36,8 @@ const EnhancedWelcomeSection = dynamic(
   }
 );
 
-const EnhancedAgentAction = dynamic(
-  () => import('@/components/EnhancedAgentAction').then(mod => ({
+const AgentAction = dynamic(
+  () => import('@/components/dashboard/AgentAction').then(mod => ({
     default: memo(mod.default)
   })),
   {
@@ -88,30 +88,26 @@ const Dashboard = memo(function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <AnimatedGradientText
-          text="Dashboard"
-          className="text-3xl font-bold"
-          gradient="linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899)"
-        />
+        <Typography.h1>Dashboard</Typography.h1>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <EnhancedKPICard
+        <KPICard
           title="Revenue"
           value={8000}
           change={12}
           icon={DollarSign}
           color="blue"
         />
-        <EnhancedKPICard
+        <KPICard
           title="Expenses"
           value={3800}
           change={-5}
           icon={DollarSign}
           color="red"
         />
-        <EnhancedKPICard
+        <KPICard
           title="Profit"
           value={4200}
           change={18}
@@ -123,20 +119,16 @@ const Dashboard = memo(function Dashboard() {
       {/* Status Panel and Welcome */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="col-span-1">
-          <EnhancedStatusPanel />
+          <StatusPanel />
         </div>
         <div className="col-span-3">
-          <EnhancedWelcomeSection />
+          <WelcomeSection />
         </div>
       </div>
 
       {/* Real-Time Metrics */}
       <div className="mt-8 mb-4">
-        <AnimatedGradientText
-          text="Real-Time Metrics"
-          className="text-2xl font-semibold"
-          gradient="linear-gradient(to right, #3b82f6, #8b5cf6, #3b82f6)"
-        />
+        <Typography.h2>Real-Time Metrics</Typography.h2>
       </div>
       <div className="mb-8">
         <RealTimeMetricsComponent />
@@ -144,14 +136,10 @@ const Dashboard = memo(function Dashboard() {
 
       {/* Agent Actions */}
       <div className="mt-8 mb-4">
-        <AnimatedGradientText
-          text="Quick Actions"
-          className="text-2xl font-semibold"
-          gradient="linear-gradient(to right, #3b82f6, #8b5cf6, #3b82f6)"
-        />
+        <Typography.h2>Quick Actions</Typography.h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <EnhancedAgentAction />
+        <AgentAction />
 
         {/* Additional agent actions can be added here */}
       </div>

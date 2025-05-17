@@ -12,7 +12,9 @@
         "theme": {
           "font-sans": "var(--font-geist-sans)",
           "font-mono": "var(--font-geist-mono)",
-          "radius": "0.625rem"
+          "radius": "0.625rem",
+          "animation-duration": "0.2s",
+          "transition-duration": "0.2s"
         },
         "light": {
           "background": "oklch(1 0 0)",
@@ -92,6 +94,70 @@
       "files": [
         {
           "path": "registry/new-york/components/theme-switcher.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "enhanced-components",
+      "type": "registry:block",
+      "title": "Enhanced Components",
+      "description": "Clean, enhanced UI components for Atlas-ERP.",
+      "files": [
+        {
+          "path": "src/components/ui/enhanced-card.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/enhanced-button.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/enhanced-container.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/enhanced-action-button.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "clean-ui-components",
+      "type": "registry:block",
+      "title": "Clean UI Components",
+      "description": "Clean, professional UI components that replace MagicUI animations.",
+      "files": [
+        {
+          "path": "src/components/ui/animated-gradient-text.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/shine-border.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/grid-pattern.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/scroll-progress.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/focus-ring.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/text-rotate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/number-display.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/ui/dot-background.tsx",
           "type": "registry:component"
         }
       ]

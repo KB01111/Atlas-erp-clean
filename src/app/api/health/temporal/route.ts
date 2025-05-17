@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
     // Perform a simple HTTP request to check if Temporal is running
     // This is a basic check that doesn't require the full SDK
     let [host, port] = temporalAddress.split(':');
+    // Default to standard Temporal port if not specified
+    port = port || '7233';
 
     // For local development without Docker, use localhost
     if (host === 'temporal' && !process.env.DOCKER_COMPOSE) {
@@ -46,7 +48,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Try to check if the Temporal UI is accessible
-    const uiUrl = `http://${host}:8088`;
+    // In Docker Compose, the UI is at port 8088 on the host
+    const uiPort = process.env.DOCKER_COMPOSE ? '8088' : '8088';
+    const uiUrl = `http://${host === 'temporal' ? 'localhost' : host}:${uiPort}`;
 
     console.log(`Checking Temporal UI at: ${uiUrl}`);
 

@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { CheckCircle, XCircle, AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { MagicCard } from "@/components/magicui/magic-card";
-import { Ripple } from "@/components/magicui/ripple";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+
 
 interface ServiceStatus {
   name: string;
@@ -392,7 +392,7 @@ export default function EnhancedStatusPanel() {
 
   return (
     <div className="relative group transition-all duration-300 hover:scale-[1.01] h-full">
-      <MagicCard
+      <EnhancedCard
         className="rounded-xl overflow-hidden h-full"
         focus
         glare
@@ -406,7 +406,7 @@ export default function EnhancedStatusPanel() {
           'rgba(156, 163, 175, 0.6)'
         }
         glareBorderRadius="0.75rem"
-      >
+       interactive hoverEffect="shadow">
         <div className="bg-card rounded-xl shadow-sm p-4 h-full">
           <div className="flex items-center justify-between mb-4 relative">
             <div className="flex items-center gap-2">
@@ -423,11 +423,7 @@ export default function EnhancedStatusPanel() {
               />
               {overallStatus === 'operational' && (
                 <div className="absolute left-0 -z-10">
-                  <Ripple
-                    className="opacity-20"
-                    mainCircleSize={100}
-                    numCircles={3}
-                  />
+                  <div className="w-24 h-24 rounded-full bg-green-500/10 animate-pulse"></div>
                 </div>
               )}
             </div>
@@ -480,7 +476,7 @@ export default function EnhancedStatusPanel() {
             ))}
           </div>
         </div>
-      </MagicCard>
+      </EnhancedCard>
     </div>
   );
 }

@@ -67,9 +67,9 @@ export function PerformanceMonitor() {
         let memory = null;
         if (performance && 'memory' in performance) {
           memory = {
-            jsHeapSizeLimit: (performance as any).memory.jsHeapSizeLimit,
-            totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
-            usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
+            jsHeapSizeLimit: (performance as unknown).memory.jsHeapSizeLimit,
+            totalJSHeapSize: (performance as unknown).memory.totalJSHeapSize,
+            usedJSHeapSize: (performance as unknown).memory.usedJSHeapSize,
           };
         }
 

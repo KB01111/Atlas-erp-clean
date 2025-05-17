@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { CheckCircle, XCircle, AlertCircle, RefreshCw, AlertTriangle, RotateCcw, Wifi, WifiOff } from "lucide-react";
-import { ShineBorder } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { MagicCard } from "@/components/magicui/magic-card";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
 import { Ripple } from "@/components/magicui/ripple";
 import { useRateLimit } from "@/context/RateLimitContext";
 import { initWebSocketClient, EventType, StatusUpdate } from "@/lib/socket-io-client";
@@ -585,22 +584,25 @@ export default function EnhancedStatusPanelV2() {
 
   return (
     <div className="relative group transition-all duration-300 hover:scale-[1.01] h-full">
-      <MagicCard
-        className="rounded-xl overflow-hidden h-full"
-        focus
-        glare
-        glareSize={0.3}
-        glareOpacity={0.2}
-        glarePosition="all"
-        glareColor={
+      <EnhancedCard
+        className="overflow-hidden h-full"
+        gradient
+        interactive
+        hoverEffect="glow"
+        gradientFrom={
           overallStatus === 'operational' ? 'rgba(34, 197, 94, 0.6)' :
           overallStatus === 'degraded' ? 'rgba(245, 158, 11, 0.6)' :
           overallStatus === 'down' ? 'rgba(239, 68, 68, 0.6)' :
           'rgba(156, 163, 175, 0.6)'
         }
-        glareBorderRadius="0.75rem"
+        gradientTo={
+          overallStatus === 'operational' ? 'rgba(34, 197, 94, 0.2)' :
+          overallStatus === 'degraded' ? 'rgba(245, 158, 11, 0.2)' :
+          overallStatus === 'down' ? 'rgba(239, 68, 68, 0.2)' :
+          'rgba(156, 163, 175, 0.2)'
+        }
       >
-        <div className="bg-card rounded-xl shadow-sm p-4 h-full">
+        <div className="p-4 h-full">
           <div className="flex items-center justify-between mb-4 relative">
             <div className="flex items-center gap-2">
               {getStatusIcon(overallStatus)}
@@ -718,7 +720,7 @@ export default function EnhancedStatusPanelV2() {
             ))}
           </div>
         </div>
-      </MagicCard>
+      </EnhancedCard>
     </div>
   );
 }

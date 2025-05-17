@@ -1,58 +1,100 @@
 "use client";
 
-import React from 'react';
-import { ShineBorder } from './shine-border';
-import { ShimmerButton } from '@/components/magicui/shimmer-button';
-import { MagicCard } from '@/components/magicui/magic-card';
-import { AnimatedGradientText } from './animated-gradient-text';
-import { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { motion } from 'motion/react';
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { cva, type VariantProps } from "class-variance-authority";
+import { LucideIcon } from "lucide-react";
+import { motion } from "motion/react";
 
-interface EmptyStateProps {
+const emptyStateVariants = cva(
+  "flex flex-col items-center justify-center text-center",
+  {
+    variants: {
+      size: {
+        sm: "min-h-[100px] p-4",
+        md: "min-h-[200px] p-6",
+        lg: "min-h-[300px] p-8",
+        xl: "min-h-[400px] p-10",
+        full: "h-full w-full p-8",
+      },
+      variant: {
+        default: "border border-dashed border-muted-foreground/30 rounded-lg",
+        card: "",
+        fancy: "",
+      },
+    },
+    defaultVariants: {
+      size: "md",
+      variant: "default",
+    },
+  }
+);
+
+interface EmptyStateProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof emptyStateVariants> {
   title: string;
   description?: string;
   icon?: LucideIcon;
   action?: {
     label: string;
     onClick: () => void;
+    variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
+    effect?: "none" | "shimmer" | "glow" | "gradient";
   };
   secondaryAction?: {
     label: string;
     onClick: () => void;
+    variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
   };
-  size?: 'small' | 'medium' | 'large';
-  variant?: 'default' | 'card' | 'fancy';
-  className?: string;
   iconClassName?: string;
   animateIcon?: boolean;
 }
 
 export function EmptyState({
+  className,
+  size,
+  variant,
   title,
   description,
   icon: Icon,
   action,
   secondaryAction,
-  size = 'medium',
-  variant = 'default',
-  className = '',
-  iconClassName = '',
+  iconClassName,
   animateIcon = true,
+  ...props
 }: EmptyStateProps) {
-  // Size classes
-  const sizeClasses = {
-    small: 'min-h-[100px] p-4',
-    medium: 'min-h-[200px] p-6',
-    large: 'min-h-[300px] p-8',
+  // Icon sizes based on container size
+  const iconSizes = {
+    sm: 32,
+    md: 48,
+    lg: 64,
+    xl: 80,
+    full: 64,
   };
 
-  // Icon sizes
-  const iconSizes = {
-    small: 32,
-    medium: 48,
-    large: 64,
+  // Text sizes based on container size
+  const titleSizes = {
+    sm: "text-base",
+    md: "text-lg",
+    lg: "text-xl",
+    xl: "text-2xl",
+    full: "text-xl",
   };
+
+  const descriptionSizes = {
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-base",
+    xl: "text-lg",
+    full: "text-base",
+  };
+
+  // Get the actual size value or default to "md"
+  const actualSize = size || "md";
 
   // Content
   const content = (
@@ -67,13 +109,13 @@ export function EmptyState({
               className="text-muted-foreground/40"
             >
               <Icon
-                size={iconSizes[size]}
+                size={iconSizes[actualSize as keyof typeof iconSizes]}
                 strokeWidth={1.5}
               />
             </motion.div>
           ) : (
             <Icon
-              size={iconSizes[size]}
+              size={iconSizes[actualSize as keyof typeof iconSizes]}
               className="text-muted-foreground/40"
               strokeWidth={1.5}
             />
@@ -81,93 +123,87 @@ export function EmptyState({
         </div>
       )}
 
-      {variant === 'fancy' ? (
-        <AnimatedGradientText
-          text={title}
-          className={`font-medium ${size === 'small' ? 'text-base' : size === 'medium' ? 'text-lg' : 'text-xl'}`}
-          gradient="linear-gradient(to right, var(--primary), var(--accent))"
-        />
-      ) : (
-        <h3 className={`font-medium text-foreground ${size === 'small' ? 'text-base' : size === 'medium' ? 'text-lg' : 'text-xl'}`}>
-          {title}
-        </h3>
-      )}
+      <h3 className={cn(
+        "font-medium text-foreground",
+        titleSizes[actualSize as keyof typeof titleSizes]
+      )}>
+        {title}
+      </h3>
 
       {description && (
-        <p className={`text-muted-foreground mt-2 max-w-md ${size === 'small' ? 'text-sm' : 'text-base'}`}>
+        <p className={cn(
+          "text-muted-foreground mt-2 max-w-md",
+          descriptionSizes[actualSize as keyof typeof descriptionSizes]
+        )}>
           {description}
         </p>
       )}
 
       <div className="mt-4 flex flex-wrap gap-3 justify-center">
         {action && (
-          <ShimmerButton
+          <EnhancedButton
+            variant={action.variant || "default"}
+            effect={action.effect || "shimmer"}
             onClick={action.onClick}
-            className={`px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground ${
-              size === 'small' ? 'text-sm' : 'text-base'
-            }`}
+            size={actualSize === "sm" ? "sm" : "default"}
           >
             {action.label}
-          </ShimmerButton>
+          </EnhancedButton>
         )}
 
         {secondaryAction && (
-          <button
+          <Button
+            variant={secondaryAction.variant || "outline"}
             onClick={secondaryAction.onClick}
-            className={`px-4 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors ${
-              size === 'small' ? 'text-sm' : 'text-base'
-            }`}
+            size={actualSize === "sm" ? "sm" : "default"}
           >
             {secondaryAction.label}
-          </button>
+          </Button>
         )}
       </div>
     </div>
   );
 
-  // Card variant
-  if (variant === 'card') {
+  // Fancy variant with EnhancedCard
+  if (variant === "fancy") {
     return (
-      <div className={cn(className)}>
-        <ShineBorder
-          borderColor="rgba(59, 130, 246, 0.2)"
-          shineBorderColor="rgba(59, 130, 246, 0.6)"
-          borderRadius="0.75rem"
-          className="h-full"
-        >
-          <div className={`bg-card rounded-xl shadow-sm ${sizeClasses[size]} h-full flex items-center justify-center`}>
-            {content}
-          </div>
-        </ShineBorder>
-      </div>
+      <EnhancedCard
+        className={cn(className)}
+        gradient
+        shine
+        interactive
+        hoverEffect="lift"
+        {...props}
+      >
+        <div className="flex flex-col items-center justify-center p-6">
+          {content}
+        </div>
+      </EnhancedCard>
     );
   }
 
-  // Fancy variant
-  if (variant === 'fancy') {
+  // Card variant
+  if (variant === "card") {
     return (
-      <MagicCard
-        className={cn(`rounded-lg h-full`, className)}
-        focus
-        glare
-        glareOpacity={0.2}
+      <EnhancedCard
+        className={cn(className)}
+        interactive
+        hoverEffect="border"
+        {...props}
       >
-        <ShineBorder
-          borderRadius="0.75rem"
-          className="p-0.5 h-full"
-          shineBorderColor="var(--primary)"
-        >
-          <div className={`bg-card text-card-foreground rounded-[0.7rem] ${sizeClasses[size]} h-full flex items-center justify-center`}>
-            {content}
-          </div>
-        </ShineBorder>
-      </MagicCard>
+        <div className="flex flex-col items-center justify-center p-6">
+          {content}
+        </div>
+      </EnhancedCard>
     );
   }
 
   // Default variant
   return (
-    <div className={cn(`${sizeClasses[size]} flex items-center justify-center border border-dashed border-muted-foreground/30 rounded-lg`, className)}>
+    <div
+      className={cn(emptyStateVariants({ size, variant }), className)}
+      {...props}
+    >
       {content}
     </div>
   );

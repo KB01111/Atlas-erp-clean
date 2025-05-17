@@ -4,7 +4,7 @@ import { isServiceAvailable, mockPipedream } from "@/lib/mock-service-provider";
 
 /**
  * GET /api/integrations/pipedream
- * 
+ *
  * Retrieves all Pipedream workflows and sources
  */
 export async function GET(req: NextRequest) {
@@ -43,6 +43,14 @@ export async function GET(req: NextRequest) {
     }
 
     // Get workflows and sources from Pipedream API
+    // Ensure client is defined
+    if (!client) {
+      return NextResponse.json(
+        { error: "Pipedream client is not available" },
+        { status: 500 }
+      );
+    }
+
     const workflows = await client.getWorkflows();
     const sources = await client.getSources();
 
@@ -62,7 +70,7 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/integrations/pipedream
- * 
+ *
  * Creates a new Pipedream workflow
  */
 export async function POST(req: NextRequest) {
@@ -121,6 +129,14 @@ export async function POST(req: NextRequest) {
 
     // Create workflow or source using Pipedream API
     let result;
+
+    // Ensure client is defined
+    if (!client) {
+      return NextResponse.json(
+        { error: "Pipedream client is not available" },
+        { status: 500 }
+      );
+    }
 
     if (type === "workflow") {
       result = await client.createWorkflow(data);

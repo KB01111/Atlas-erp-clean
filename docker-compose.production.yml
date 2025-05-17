@@ -115,6 +115,29 @@ services:
       exit 0;
       "
 
+  # ArangoDB - Knowledge Graph Database
+  arangodb:
+    image: arangodb:3.11
+    container_name: atlas-erp-arangodb
+    environment:
+      - ARANGO_ROOT_PASSWORD=${ARANGO_ROOT_PASSWORD:-atlas_arango_password}
+    ports:
+      - "8529:8529"
+    volumes:
+      - arango-data:/var/lib/arangodb3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8529/_api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   # PostgreSQL for Temporal
   postgres:
     image: postgres:15-alpine
@@ -238,6 +261,7 @@ services:
 volumes:
   minio-data:
   surreal-data:
+  arango-data:
   postgres-data:
   prometheus-data:
   grafana-data:

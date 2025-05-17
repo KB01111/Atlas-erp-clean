@@ -89,7 +89,7 @@ export interface RunEvent {
   type: string;
   timestamp: string;
   run: RunResponse;
-  data?: any;
+  data?: unknown;
 }
 
 /**
@@ -223,7 +223,7 @@ export function createRunResponse(
 export function createRunEvent(
   type: string,
   run: RunResponse,
-  data?: any
+  data?: unknown
 ): RunEvent {
   return {
     type,

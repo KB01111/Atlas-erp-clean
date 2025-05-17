@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { uploadFile } from '@/lib/minio-client';
 import * as surrealDB from '@/lib/surreal-client';
 import { createVectorEmbedding } from '@/lib/vector-service';
+import { processDocument } from '@/lib/document-processor';
+import { isServiceAvailable as isUnstructuredAvailable } from '@/lib/unstructured-service';
+import * as arangoKnowledgeService from '@/lib/arango-knowledge-service';
 
 /**
  * API route for uploading documents
@@ -41,6 +44,15 @@ export async function POST(request: NextRequest) {
     // Check if we should create vector embeddings
     const vectorize = formData.get('vectorize') === 'true';
 
+    // Check if we should use unstructured.io
+    const useUnstructured = formData.get('useUnstructured') !== 'false';
+
+    // Check if we should extract entities
+    const extractEntities = formData.get('extractEntities') === 'true';
+
+    // Check if we should add to knowledge graph
+    const addToKnowledgeGraph = formData.get('addToKnowledgeGraph') === 'true';
+
     // Validate file size (max 50MB)
     const maxSize = 50 * 1024 * 1024; // 50MB in bytes
     if (fileSize > maxSize) {
@@ -57,8 +69,11 @@ export async function POST(request: NextRequest) {
     // Upload file to MinIO
     const uploadResult = await uploadFile(buffer, fileName, fileType);
 
+    // Generate a unique document ID
+    const documentId = `doc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
     // Prepare document record
-    const documentData: any = {
+    const documentData: unknown = {
       name: fileName,
       type: fileType,
       size: fileSize,
@@ -67,7 +82,84 @@ export async function POST(request: NextRequest) {
       url: uploadResult.url,
       uploadedAt: new Date().toISOString(),
       vectorEmbedding: false,
+      processed: false,
+      knowledgeGraph: false,
     };
+
+    // Process document with unstructured.io if available and requested
+    let processedDocument = null;
+    let knowledgeNode = null;
+    let structuredElements = null;
+
+    if (useUnstructured) {
+      try {
+        // Check if unstructured.io is available
+        const unstructuredAvailable = await isUnstructuredAvailable();
+
+        if (unstructuredAvailable) {
+          // Process the document
+          processedDocument = await processDocument(documentId, file, {
+            useUnstructured: true,
+            extractEntities: extractEntities,
+            extractTables: true,
+            chunkingStrategy: 'by_title',
+          });
+
+          // Update document data
+          documentData.processed = true;
+          documentData.processedAt = new Date().toISOString();
+          documentData.textContent = processedDocument.text.substring(0, 1000) + '...'; // Store a preview
+          documentData.pageCount = processedDocument.pages?.length || 1;
+
+          // Store structured elements for knowledge graph
+          if (processedDocument.elements) {
+            structuredElements = processedDocument.elements;
+          }
+        }
+      } catch (processError) {
+        console.error('Error processing document with unstructured.io:', processError);
+        // Continue without processing - we'll still upload the file
+      }
+    }
+
+    // Add to knowledge graph if requested
+    if (addToKnowledgeGraph && processedDocument && processedDocument.text) {
+      try {
+        // Initialize knowledge graph
+        await arangoKnowledgeService.initializeKnowledgeGraph();
+
+        // Process document with knowledge graph
+        const result = await arangoKnowledgeService.processDocument(
+          processedDocument.text,
+          fileName,
+          {
+            fileType,
+            fileSize,
+            url: uploadResult.url,
+            objectName: uploadResult.objectName,
+            category,
+          },
+          {
+            chunkSize: 1000,
+            chunkOverlap: 200,
+            maxChunks: 20,
+            extractEntities: extractEntities,
+            structuredElements: structuredElements,
+          }
+        );
+
+        // Update document data
+        documentData.knowledgeGraph = true;
+        documentData.knowledgeGraphNodeId = result.documentNode._key;
+        documentData.knowledgeGraphChunks = result.chunkNodes.length;
+
+        // Store knowledge node
+        knowledgeNode = result.documentNode;
+      } catch (knowledgeError) {
+        console.error('Error adding document to knowledge graph:', knowledgeError);
+        // Continue without knowledge graph - we'll still upload the file
+      }
+    }
 
     // Create vector embeddings for supported file types if requested
     if (vectorize && isEmbeddingSupported(fileType, fileName)) {
@@ -93,6 +185,13 @@ export async function POST(request: NextRequest) {
       success: true,
       document: documentRecord,
       vectorized: documentData.vectorEmbedding,
+      processed: documentData.processed,
+      knowledgeGraph: documentData.knowledgeGraph,
+      knowledgeNode: knowledgeNode ? {
+        id: knowledgeNode._key,
+        type: knowledgeNode.type,
+        name: knowledgeNode.name,
+      } : null,
     });
   } catch (error) {
     console.error('Error uploading document:', error);
@@ -139,15 +238,22 @@ function isEmbeddingSupported(fileType: string, fileName: string): boolean {
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'text/plain',
     'text/csv',
     'application/json',
     'text/markdown',
+    'text/html',
+    'message/rfc822',
   ];
 
   // Supported file extensions
   const supportedExtensions = [
-    'pdf', 'doc', 'docx', 'txt', 'csv', 'json', 'md', 'markdown'
+    'pdf', 'doc', 'docx', 'txt', 'csv', 'json', 'md', 'markdown',
+    'xls', 'xlsx', 'ppt', 'pptx', 'html', 'htm', 'eml', 'msg'
   ];
 
   return supportedMimeTypes.includes(fileType) || supportedExtensions.includes(fileExtension);

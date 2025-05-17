@@ -8,7 +8,7 @@ import { Workflow, StepType } from '@/components/pipedream/PipedreamWorkflowBuil
 import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import {
@@ -18,8 +18,9 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-// Import the mock data from the new page
-import { mockWorkflows, mockExecutions, mockTemplates } from '@/app/integrations/pipedream/page';
+// Import mock data from the lib files
+import { mockWorkflows, mockExecutions } from '@/lib/mock-pipedream-data';
+import { mockTemplates } from '@/lib/mock-pipedream-templates';
 
 export default function PipedreamPage() {
 
@@ -288,12 +289,12 @@ export default function PipedreamPage() {
                 </div>
 
                 <div className="pt-4">
-                  <ShimmerButton
+                  <EnhancedActionButton
                     onClick={saveApiSettings}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md"
-                  >
+                   variant="default" size="sm" hover="lift">
                     Save Settings
-                  </ShimmerButton>
+                  </EnhancedActionButton>
                 </div>
               </div>
             </div>

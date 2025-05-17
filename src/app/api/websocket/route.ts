@@ -4,7 +4,7 @@ import { Server as HTTPServer } from 'http';
 import { initWebSocketServer } from '@/lib/websocket-server';
 
 // Global variable to store the Socket.IO server instance
-let io: SocketIOServer | null = null;
+const io: SocketIOServer | null = null;
 
 /**
  * API route for WebSocket connections
@@ -20,18 +20,26 @@ export async function GET(request: NextRequest) {
 
     // Initialize the WebSocket server if it's not already initialized
     if (!io) {
-      // Get the HTTP server instance from the request
-      // Note: This is a workaround for Next.js App Router
-      // In a production environment, you would initialize the WebSocket server
+      // Note: In Next.js App Router, we can't directly access the HTTP server
+      // In a production environment, you should initialize the WebSocket server
       // in a custom server.js file
-      const res = new NextResponse();
-      const server = res.socket?.server as unknown as HTTPServer;
-      
-      if (!server) {
-        return new NextResponse('Failed to get HTTP server instance', { status: 500 });
-      }
 
-      io = initWebSocketServer(server);
+      // This approach won't work in App Router, so we'll return an informative message
+      return new NextResponse(
+        JSON.stringify({
+          message: 'WebSocket server should be initialized in a custom server.js file',
+          info: 'See server.js in the project root for the WebSocket implementation'
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      // Note: The code below is unreachable but kept for reference
+      // io = initWebSocketServer(server);
     }
 
     // Return a response to acknowledge the WebSocket connection

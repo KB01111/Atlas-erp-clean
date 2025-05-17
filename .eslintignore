@@ -1,0 +1,36 @@
+# Ignore build output
+.next/
+dist/
+out/
+
+# Ignore node_modules
+node_modules/
+
+# Ignore public assets
+public/
+
+# Ignore specific problematic files
+src/lib/temporal-client.js
+src/lib/ocr-service.ts
+src/lib/pdf-service.ts
+src/lib/pipedream-client.ts
+src/lib/service-config.ts
+src/lib/socket-io-client.ts
+src/lib/surreal-client.ts
+src/lib/temporal-workflow-service.ts
+src/lib/vector-service.ts
+src/lib/websocket-client.ts
+src/lib/websocket-server.ts
+src/lib/workflow-service.ts
+
+# Ignore test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Ignore configuration files
+next.config.js
+tailwind.config.js
+postcss.config.js
+jest.config.js

@@ -128,7 +128,7 @@ export async function getSurrealDB(): Promise<Surreal> {
  * @param data The data to store
  * @returns The created record
  */
-export async function create<T>(table: string, data: any): Promise<T> {
+export async function create<T>(table: string, data: unknown): Promise<T> {
   const db = await getSurrealDB();
   try {
     if (useMockService) {
@@ -174,7 +174,7 @@ export async function select<T>(table: string, id?: string): Promise<T[]> {
  * @param data The data to update
  * @returns The updated record
  */
-export async function update<T>(table: string, id: string, data: any): Promise<T> {
+export async function update<T>(table: string, id: string, data: unknown): Promise<T> {
   const db = await getSurrealDB();
   try {
     if (useMockService) {
@@ -228,7 +228,7 @@ export async function query<T>(query: string, vars?: Record<string, any>): Promi
   }
 }
 
-export default {
+const defaultExport = {
   init: initSurrealDB,
   get: getSurrealDB,
   create,
@@ -237,3 +237,4 @@ export default {
   remove,
   query,
 };
+export default defaultExport;;

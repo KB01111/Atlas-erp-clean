@@ -80,8 +80,8 @@ function createServiceAdapter() {
   if (primaryProvider === "openai" && !fallbackProvider) {
     return new OpenAIAdapter({
       model: primaryModel,
-      apiKey,
-      apiBase,
+      apiKey: apiKey,
+      apiBase: apiBase,
     });
   }
 

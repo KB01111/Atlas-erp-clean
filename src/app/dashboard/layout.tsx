@@ -1,5 +1,6 @@
 "use client";
 
+import React, { memo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,38 +14,17 @@ import {
   Brain,
   Workflow
 } from "lucide-react";
-import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
+import { GridPattern } from "@/components/ui/grid-pattern";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { Ripple } from "@/components/magicui/ripple";
-import { BorderBeam } from "@/components/magicui/border-beam";
-import { DotPattern } from "@/components/magicui/dot-pattern";
-import { useTheme } from "next-themes";
-import { Moon, Sun, Monitor } from "lucide-react";
-import { memo } from "react";
+import { DotBackground } from "@/components/ui/dot-background";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
 // Note: This layout has been enhanced with MagicUI components
 // See Memory Bank documentation: UI-Improvements.md for details
 
-// Simple Theme Switcher component
-const ThemeSwitcherSimple = () => {
-  const { theme, setTheme } = useTheme();
-
-  return (
-    <button
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="p-2 rounded-full bg-background/80 backdrop-blur-sm border border-input hover:bg-accent transition-colors"
-      aria-label="Toggle theme"
-    >
-      {theme === 'dark' ? (
-        <Sun className="h-5 w-5 text-yellow-400" />
-      ) : (
-        <Moon className="h-5 w-5 text-slate-700" />
-      )}
-    </button>
-  );
-};
+// Using the shadcn ThemeSwitcher component from the registry
 
 // Memoize the NavItem component to prevent unnecessary re-renders
 const NavItem = memo(({ item, isActive }: {
@@ -68,11 +48,7 @@ const NavItem = memo(({ item, isActive }: {
         {isActive && (
           <>
             <div className="absolute right-0 w-1 h-6 bg-sidebar-primary-foreground rounded-l-md" />
-            <Ripple
-              className="opacity-30"
-              mainCircleSize={100}
-              numCircles={3}
-            />
+            <div className="absolute inset-0 bg-sidebar-primary/10 rounded-md" />
           </>
         )}
       </Link>
@@ -144,30 +120,26 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside className="w-64 bg-sidebar text-sidebar-foreground p-4 relative overflow-hidden">
-        <DotPattern
-          width={40} // Increased spacing between dots
-          height={40} // Increased spacing between dots
-          cx={1}
-          cy={1}
-          cr={1}
-          glow={false} // Disable glow effect for better performance
-          className="absolute inset-0 text-sidebar-primary/10 [mask-image:linear-gradient(to_bottom_right,black,transparent,transparent)]"
+        <DotBackground
+          dotSpacing={40}
+          dotSize={2}
+          dotOpacity={0.1}
+          className="absolute inset-0 text-sidebar-primary [mask-image:linear-gradient(to_bottom_right,black,transparent,transparent)]"
         />
 
         <div className="relative z-10">
           <div className="mb-8">
-            <BorderBeam
-              className="p-3 rounded-lg"
-              beamColor="var(--sidebar-primary)"
-              beamDuration={2}
-              beamSize={1}
+            <BorderContainer
+              variant="primary"
+              rounded="lg"
+              className="p-3"
             >
               <AnimatedGradientText
                 text="Atlas-ERP"
                 className="text-2xl font-bold"
                 gradient="linear-gradient(to right, var(--primary), var(--sidebar-primary), var(--accent))"
               />
-            </BorderBeam>
+            </BorderContainer>
           </div>
 
           <nav>
@@ -186,19 +158,23 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <main className="flex-1 overflow-auto p-6 bg-background relative">
-        {/* Simplified grid pattern with reduced animation */}
-        <AnimatedGridPattern
-          gridSize={80} // Larger grid size for fewer lines
+        {/* Clean grid pattern */}
+        <GridPattern
+          gridSize={80}
           lineColor="var(--foreground)"
-          lineOpacity={0.02} // Reduced opacity
+          lineOpacity={0.02}
           lineWidth={1}
-          animationDuration={120} // Much slower animation
           className="absolute inset-0"
         />
         <div className="relative z-10">
           {/* Theme Switcher */}
           <div className="absolute top-6 right-6 z-20">
-            <ThemeSwitcherSimple />
+            <ThemeSwitcher
+              variant="ghost"
+              size="icon"
+              className="bg-background/80 backdrop-blur-sm border border-input"
+              iconClassName="text-foreground"
+            />
           </div>
 
           {children}

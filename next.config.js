@@ -17,9 +17,6 @@ const nextConfig = {
 
   // Experimental features and optimizations
   experimental: {
-    // Ensure we only have one copy of React
-    esmExternals: 'loose', // Helps with React resolution
-
     // Optimize imports from these packages
     optimizePackageImports: [
       'motion',

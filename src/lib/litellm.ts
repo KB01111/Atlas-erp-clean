@@ -11,7 +11,7 @@ const DEFAULT_MODEL = process.env.LLM_MODEL || 'gpt-4o';
 const BASE_URL = 'https://api.litellm.ai/v1';
 
 // Helper function to make API requests
-async function makeRequest(endpoint: string, data: any) {
+async function makeRequest(endpoint: string, data: unknown) {
   try {
     const response = await axios({
       method: 'POST',
@@ -23,14 +23,14 @@ async function makeRequest(endpoint: string, data: any) {
       data
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('LiteLLM API error:', error.response?.data || error.message);
     throw error;
   }
 }
 
 // Completion function
-export async function completion(options: any = {}) {
+export async function completion(options: unknown = {}) {
   console.log("LiteLLM completion called with model:", options.model);
 
   const requestData = {
@@ -46,7 +46,7 @@ export async function completion(options: any = {}) {
 }
 
 // Embedding function
-export async function embedding(options: any = {}) {
+export async function embedding(options: unknown = {}) {
   console.log("LiteLLM embedding called with model:", options.model);
 
   const requestData = {
@@ -60,21 +60,21 @@ export async function embedding(options: any = {}) {
 
 // For backward compatibility with code that uses the class-based approach
 export class LiteLLM {
-  private options: any;
+  private options: unknown;
 
-  constructor(options: any = {}) {
+  constructor(options: unknown = {}) {
     this.options = options;
     console.log("LiteLLM class initialized with model:", options.model || DEFAULT_MODEL);
   }
 
-  async chatCompletion(options: any = {}) {
+  async chatCompletion(options: unknown = {}) {
     return completion({
       ...this.options,
       ...options,
     });
   }
 
-  async embedding(options: any = {}) {
+  async embedding(options: unknown = {}) {
     return embedding({
       ...this.options,
       ...options,

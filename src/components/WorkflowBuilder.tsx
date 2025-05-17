@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { MagicCard } from "@/components/magicui/magic-card";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { LoadingState } from "@/components/ui/loading-state";
 import { 
@@ -28,7 +28,7 @@ interface WorkflowNode {
   type: "agent" | "input" | "output" | "condition" | "transformation";
   label: string;
   position: { x: number; y: number };
-  data?: any;
+  data?: unknown;
 }
 
 interface WorkflowEdge {
@@ -101,7 +101,7 @@ export default function WorkflowBuilder({
   }, [nodes, edges, workflow, onChange]);
 
   // Add a new node
-  const addNode = (type: WorkflowNode["type"], label: string, position: { x: number; y: number }, data?: any) => {
+  const addNode = (type: WorkflowNode["type"], label: string, position: { x: number; y: number }, data?: unknown) => {
     if (readOnly) return;
     
     const newNode: WorkflowNode = {
@@ -355,8 +355,8 @@ export default function WorkflowBuilder({
         />
         <div className="flex items-center gap-2">
           {!readOnly && (
-            <ShimmerButton
-              onClick={() => {
+            <EnhancedActionButton
+              onClick={() = variant="default" size="sm" hover="lift"> {
                 if (!containerRef.current) return;
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = rect.width / 2 / zoom;
@@ -367,17 +367,17 @@ export default function WorkflowBuilder({
             >
               <Plus size={14} />
               <span>Add Node</span>
-            </ShimmerButton>
+            </EnhancedActionButton>
           )}
         </div>
       </div>
 
-      <ShineBorder
+      <BorderContainer
         borderColor="rgba(59, 130, 246, 0.2)"
         shineBorderColor="rgba(59, 130, 246, 0.6)"
         borderRadius="0.75rem"
         className="flex-1"
-      >
+       variant="primary" rounded="xl">
         <div 
           ref={containerRef}
           className="bg-white rounded-lg shadow-md h-full overflow-hidden relative"
@@ -504,7 +504,7 @@ export default function WorkflowBuilder({
             })}
           </div>
         </div>
-      </ShineBorder>
+      </BorderContainer>
     </div>
   );
 }

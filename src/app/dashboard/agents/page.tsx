@@ -6,8 +6,8 @@ import {
   Bot, Play, Pause, RotateCcw, Settings, ChevronDown, ChevronUp,
   AlertCircle, RefreshCw, Loader2, MessageSquare, Send
 } from "lucide-react";
-import { Agent } from "@/lib/agent-service";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { Agent } from "@/lib/validation/schemas";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 
 export default function AgentsPage() {
@@ -331,7 +331,7 @@ export default function AgentsPage() {
           ) : (
             agents.map((agent) => (
               <div key={agent.id} className="relative group transition-all duration-300 hover:scale-[1.01]">
-                <ShineBorder
+                <BorderContainer
                   borderColor={
                     agent.status === "running" ? "rgba(34, 197, 94, 0.2)" :
                     agent.status === "error" ? "rgba(239, 68, 68, 0.2)" :
@@ -344,7 +344,7 @@ export default function AgentsPage() {
                   }
                   borderRadius="0.75rem"
                   className="p-0.5"
-                >
+                 variant="primary" rounded="xl">
                   <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                     <div className="p-6">
                       <div className="flex items-start justify-between">
@@ -472,7 +472,7 @@ export default function AgentsPage() {
                   </div>
                 )}
                   </div>
-                </ShineBorder>
+                </BorderContainer>
               </div>
             ))
           )}

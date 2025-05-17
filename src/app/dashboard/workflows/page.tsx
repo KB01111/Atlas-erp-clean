@@ -13,10 +13,15 @@ import {
   Workflow,
 } from "lucide-react";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { MagicCard } from "@/components/magicui/magic-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
 import { Workflow as WorkflowType } from "@/lib/workflow-service";
+import { LoadingState } from "@/components/ui/loading-state";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { EmptyState } from "@/components/ui/empty-state";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
 
 export default function WorkflowsPage() {
   const [workflows, setWorkflows] = useState<WorkflowType[]>([]);
@@ -158,21 +163,21 @@ export default function WorkflowsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <AnimatedGradientText
             text="AI Workflows"
             className="text-3xl font-bold"
             gradient="linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899)"
           />
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-1">
             Create and manage AI automation workflows by chaining together different agents
           </p>
         </div>
 
-        <ShimmerButton
-          onClick={() => {
+        <EnhancedActionButton
+          onClick={() = variant="default" size="sm" hover="lift"> {
             // Navigate to workflow creation page
             window.location.href = "/dashboard/workflows/create";
           }}
@@ -180,92 +185,97 @@ export default function WorkflowsPage() {
         >
           <Plus size={18} className="mr-2" />
           Create Workflow
-        </ShimmerButton>
+        </EnhancedActionButton>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
+        <LoadingState
+          message="Loading workflows..."
+          size="large"
+          variant="card"
+          showSpinner={true}
+        />
       ) : error ? (
-        <div className="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 text-red-800 dark:text-red-200">
-          {error}
-        </div>
+        <ErrorMessage
+          title="Failed to load workflows"
+          message={error}
+          variant="error"
+          onRetry={fetchWorkflows}
+        />
       ) : workflows.length === 0 ? (
-        <div className="bg-muted rounded-lg p-8 text-center">
-          <Workflow className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No workflows found</h3>
-          <p className="text-muted-foreground mb-4">
-            Create your first AI automation workflow to get started
-          </p>
-          <ShimmerButton
-            onClick={() => {
+        <EmptyState
+          title="No workflows found"
+          description="Create your first AI automation workflow to get started"
+          icon={<Workflow className="h-12 w-12 text-muted-foreground" />}
+          action={{
+            label: "Create Workflow",
+            onClick: () => {
               window.location.href = "/dashboard/workflows/create";
-            }}
-            className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground"
-          >
-            <Plus size={18} className="mr-2" />
-            Create Workflow
-          </ShimmerButton>
-        </div>
+            },
+          }}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {workflows.map((workflow) => (
-            <MagicCard key={workflow.id} className="overflow-hidden">
-              <ShineBorder
-                borderRadius="0.75rem"
-                className="p-0.5"
-              >
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-xl font-semibold mb-2">{workflow.name}</h3>
-                        <p className="text-muted-foreground text-sm mb-4">
-                          {workflow.description}
-                        </p>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                            workflow.status === 'active' ? 'bg-green-500' :
-                            workflow.status === 'draft' ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}></span>
-                          <span className="capitalize">{workflow.status}</span>
-                          <span className="mx-2">•</span>
-                          <span>
-                            {new Date(workflow.updatedAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleExecuteWorkflow(workflow.id)}
-                          className="p-2 rounded-md hover:bg-muted"
-                          title="Execute workflow"
-                        >
-                          <Play size={16} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            window.location.href = `/dashboard/workflows/edit/${workflow.id}`;
-                          }}
-                          className="p-2 rounded-md hover:bg-muted"
-                          title="Edit workflow"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteWorkflow(workflow.id)}
-                          className="p-2 rounded-md hover:bg-muted text-red-500"
-                          title="Delete workflow"
-                        >
-                          <Trash size={16} />
-                        </button>
-                      </div>
+            <EnhancedCard
+              key={workflow.id}
+              className="overflow-hidden"
+              interactive
+              hoverEffect="lift"
+            >
+              <div className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{workflow.name}</h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      {workflow.description}
+                    </p>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                        workflow.status === 'active' ? 'bg-green-500' :
+                        workflow.status === 'draft' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}></span>
+                      <span className="capitalize">{workflow.status}</span>
+                      <span className="mx-2">•</span>
+                      <span>
+                        {new Date(workflow.updatedAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
+                  <div className="flex space-x-1">
+                    <EnhancedButton
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleExecuteWorkflow(workflow.id)}
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      title="Execute workflow"
+                    >
+                      <Play size={16} />
+                    </EnhancedButton>
+                    <EnhancedButton
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        window.location.href = `/dashboard/workflows/edit/${workflow.id}`;
+                      }}
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      title="Edit workflow"
+                    >
+                      <Edit size={16} />
+                    </EnhancedButton>
+                    <EnhancedButton
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteWorkflow(workflow.id)}
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      title="Delete workflow"
+                    >
+                      <Trash size={16} />
+                    </EnhancedButton>
+                  </div>
                 </div>
-              </ShineBorder>
-            </MagicCard>
+              </div>
+            </EnhancedCard>
           ))}
         </div>
       )}

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { NodeType, EdgeType } from '@/lib/arango-knowledge-service';
 import {
   Brain,
@@ -23,7 +23,7 @@ import {
   Move
 } from 'lucide-react';
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { Tooltip } from "@/components/ui/tooltip";
 
 // Define the node and edge types for the visualization
@@ -1051,13 +1051,16 @@ export default function KnowledgeGraphVisualization({
                 onChange={(e) => setGroupNameInput(e.target.value)}
                 className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <ShimmerButton
+              <EnhancedActionButton
                 onClick={handleCreateGroup}
                 disabled={selectedNodes.size < 2 || !groupNameInput}
                 className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="default"
+                size="sm"
+                hover="lift"
               >
                 Create Group
-              </ShimmerButton>
+              </EnhancedActionButton>
             </div>
 
             {nodeGroups.length > 0 && (
@@ -1093,8 +1096,8 @@ export default function KnowledgeGraphVisualization({
 
       {/* Main visualization area */}
       <div className="flex-1 relative">
-        <MagicCard className="h-full overflow-hidden">
-          <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+        <EnhancedCard className="h-full overflow-hidden" interactive hoverEffect="shadow">
+          <BorderContainer variant="primary" rounded="xl" className="p-0.5 h-full">
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden h-full relative">
               {filteredNodes.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
@@ -1179,15 +1182,15 @@ export default function KnowledgeGraphVisualization({
                 </>
               )}
             </div>
-          </ShineBorder>
-        </MagicCard>
+          </BorderContainer>
+        </EnhancedCard>
       </div>
 
       {/* Selected node details panel */}
       {selectedNode && (
         <div className="mt-4">
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer variant="primary" rounded="xl" className="p-0.5">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -1219,8 +1222,8 @@ export default function KnowledgeGraphVisualization({
                   </div>
                 )}
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
         </div>
       )}
     </div>

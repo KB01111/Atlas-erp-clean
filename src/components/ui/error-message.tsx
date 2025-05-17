@@ -1,21 +1,57 @@
 "use client";
 
-import React from 'react';
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 import { AlertTriangle, XCircle, Info, RefreshCw } from 'lucide-react';
-import { ShineBorder } from './shine-border';
+import { Button } from "@/components/ui/button";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-interface ErrorMessageProps {
+const errorMessageVariants = cva(
+  "flex items-start gap-3 rounded-lg",
+  {
+    variants: {
+      size: {
+        sm: "p-3 text-sm",
+        md: "p-4",
+        lg: "p-6",
+        xl: "p-8",
+      },
+      severity: {
+        error: "bg-destructive/10 text-destructive dark:bg-destructive/20",
+        warning: "bg-warning/10 text-warning-foreground dark:bg-warning/20",
+        info: "bg-info/10 text-info-foreground dark:bg-info/20",
+      },
+      variant: {
+        default: "border",
+        card: "",
+        alert: "",
+        inline: "p-0 bg-transparent",
+      },
+    },
+    defaultVariants: {
+      size: "md",
+      severity: "error",
+      variant: "default",
+    },
+  }
+);
+
+interface ErrorMessageProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof errorMessageVariants> {
   title?: string;
   message: string;
-  variant?: 'error' | 'warning' | 'info';
-  size?: 'small' | 'medium' | 'large';
   actions?: {
     label: string;
     onClick: () => void;
     icon?: React.ReactNode;
+    variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
+    effect?: "none" | "shimmer" | "glow" | "gradient";
   }[];
   onRetry?: () => void;
-  className?: string;
   details?: string;
   showDetails?: boolean;
 }
@@ -98,11 +134,11 @@ export function ErrorMessage({
   // Enhanced version for medium and large sizes
   return (
     <div className={className}>
-      <ShineBorder
+      <BorderContainer
         borderColor={currentVariant.shineBorder.borderColor}
         shineBorderColor={currentVariant.shineBorder.shineBorderColor}
         borderRadius="0.75rem"
-      >
+       variant="primary" rounded="xl">
         <div className={`${currentVariant.bgColor} rounded-xl ${sizeClasses[size]}`}>
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 mt-1">
@@ -190,7 +226,7 @@ export function ErrorMessage({
             </div>
           </div>
         </div>
-      </ShineBorder>
+      </BorderContainer>
     </div>
   );
 }

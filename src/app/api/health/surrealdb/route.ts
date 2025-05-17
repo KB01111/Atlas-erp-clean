@@ -32,10 +32,7 @@ export async function GET(request: NextRequest) {
       responseTime: statusData.responseTime,
     });
 
-    return NextResponse.json({
-      status: 'connected',
-      ...statusData
-    });
+    return NextResponse.json(statusData);
   } catch (error) {
     console.error('Error connecting to SurrealDB:', error);
 

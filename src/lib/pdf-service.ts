@@ -110,7 +110,7 @@ export interface PDFProcessingResult {
   outline?: {
     title: string;
     dest: string;
-    items?: any[];
+    items?: unknown[];
   }[];
   attachments?: {
     filename: string;
@@ -196,7 +196,7 @@ export async function processPDF(
       // Extract text content
       const textContent = await page.getTextContent();
       const pageText = textContent.items
-        .map((item: any) => item.str)
+        .map((item: unknown) => item.str)
         .join(' ');
       
       // Extract images if requested

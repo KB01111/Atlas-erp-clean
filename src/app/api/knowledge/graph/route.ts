@@ -113,10 +113,10 @@ export async function POST(req: NextRequest) {
     });
 
     // Update edge references with saved node IDs
-    const edgesToSave = body.edges.map(edge => {
+    const edgesToSave = body.edges.map((edge: unknown) => {
       // If the source/target is a name (not an ID), look up the ID
-      let source = edge.source;
-      let target = edge.target;
+      const source = edge.source;
+      const target = edge.target;
 
       // If the edge already has proper IDs, use them
       if (edge._from && edge._to) {
@@ -125,8 +125,8 @@ export async function POST(req: NextRequest) {
 
       return {
         ...edge,
-        source: source,
-        target: target,
+        source,
+        target,
         type: edge.type || arangoKnowledgeService.EdgeType.RELATES_TO,
       };
     });

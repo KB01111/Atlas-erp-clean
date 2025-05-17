@@ -16,12 +16,12 @@ async function ensureInitialized() {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await ensureInitialized();
 
-    const { id } = params;
+    const { id } = await params;
 
     // Get the node
     const node = await arangoKnowledgeService.getNodeByKey(id);
@@ -50,12 +50,12 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await ensureInitialized();
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Get connected nodes
@@ -82,12 +82,12 @@ export async function POST(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await ensureInitialized();
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Validate request body
@@ -108,7 +108,7 @@ export async function PUT(
     }
 
     // Create update object
-    const updates: any = {};
+    const updates: unknown = {};
     if (body.name) updates.name = body.name;
     if (body.content) updates.content = body.content;
     if (body.type) updates.type = body.type;
@@ -134,12 +134,12 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await ensureInitialized();
 
-    const { id } = params;
+    const { id } = await params;
 
     // Check if node exists
     const existingNode = await arangoKnowledgeService.getNodeByKey(id);

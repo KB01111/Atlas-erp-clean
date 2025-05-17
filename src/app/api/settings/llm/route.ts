@@ -173,10 +173,9 @@ export async function PUT(req: NextRequest) {
       const response = await completion({
         model: modelName,
         messages: [{ role: "user", content: "Hello, this is a test message." }],
-        api_key: apiKey,
-        api_base: apiBase,
+        apiKey: apiKey,
+        baseUrl: apiBase,
         max_tokens: 10, // Keep it small for testing
-        timeout: 10000, // 10 second timeout for testing
       });
 
       // Save the successful settings to the server

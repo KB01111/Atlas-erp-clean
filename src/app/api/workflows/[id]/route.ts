@@ -6,21 +6,21 @@ import * as workflowService from '@/lib/workflow-service';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+
     // Get the workflow
     const workflow = await workflowService.getWorkflowById(id);
-    
+
     if (!workflow) {
       return NextResponse.json(
         { error: `Workflow with ID ${id} not found` },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json({
       workflow,
     });
@@ -38,15 +38,15 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
-    
+
     // Update the workflow
     const workflow = await workflowService.updateWorkflow(id, body);
-    
+
     return NextResponse.json({
       workflow,
     });
@@ -64,14 +64,14 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+
     // Delete the workflow
     const workflow = await workflowService.deleteWorkflow(id);
-    
+
     return NextResponse.json({
       workflow,
     });

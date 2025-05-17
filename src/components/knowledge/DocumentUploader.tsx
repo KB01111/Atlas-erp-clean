@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { NodeType } from '@/lib/arango-knowledge-service';
 import { FileText, Upload, X, Check, AlertCircle, Loader2 } from 'lucide-react';
 
 interface DocumentUploaderProps {
-  onDocumentProcessed: (document: any, chunks: any[]) => void;
+  onDocumentProcessed: (document: unknown, chunks: unknown[]) => void;
   className?: string;
 }
 
@@ -113,8 +113,8 @@ export default function DocumentUploader({
   };
 
   return (
-    <MagicCard className={`rounded-xl overflow-hidden ${className}`}>
-      <ShineBorder borderRadius="0.75rem" className="p-0.5">
+    <EnhancedCard className={`rounded-xl overflow-hidden ${className}`} interactive hoverEffect="shadow">
+      <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
         <div className="bg-card rounded-xl shadow-sm p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <FileText className="mr-2 text-primary" size={20} />
@@ -194,11 +194,11 @@ export default function DocumentUploader({
             
             {/* Process button */}
             <div className="flex justify-end">
-              <ShimmerButton
+              <EnhancedActionButton
                 onClick={handleProcessDocument}
                 disabled={isLoading || !documentContent || !documentName}
                 className="px-4 py-2 rounded-md font-medium bg-primary text-primary-foreground disabled:opacity-50"
-              >
+               variant="default" size="sm" hover="lift">
                 {isLoading ? (
                   <>
                     <Loader2 size={16} className="mr-2 animate-spin" />
@@ -215,7 +215,7 @@ export default function DocumentUploader({
                     Process Document
                   </>
                 )}
-              </ShimmerButton>
+              </EnhancedActionButton>
             </div>
             
             {/* Error message */}
@@ -235,7 +235,7 @@ export default function DocumentUploader({
             )}
           </div>
         </div>
-      </ShineBorder>
-    </MagicCard>
+      </BorderContainer>
+    </EnhancedCard>
   );
 }

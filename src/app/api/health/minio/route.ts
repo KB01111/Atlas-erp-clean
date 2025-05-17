@@ -4,7 +4,7 @@ import { getMockServiceStatus, isServiceAvailable } from '@/lib/mock-service-pro
 
 // MinIO client configuration
 let minioEndpoint = process.env.MINIO_ENDPOINT || 'localhost';
-let minioPort = parseInt(process.env.MINIO_PORT || '9000');
+const minioPort = parseInt(process.env.MINIO_PORT || '9000');
 let useSSL = process.env.MINIO_USE_SSL === 'true';
 
 // For local development without Docker, use localhost

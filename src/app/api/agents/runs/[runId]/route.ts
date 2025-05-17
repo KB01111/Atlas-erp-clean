@@ -6,21 +6,21 @@ import * as agentService from '@/lib/agent-service';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { runId: string } }
+  { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
-    const { runId } = params;
-    
+    const { runId } = await params;
+
     // Get the run
     const run = await agentService.getAgentRunById(runId);
-    
+
     if (!run) {
       return NextResponse.json(
         { error: `Run with ID ${runId} not found` },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json({
       run,
     });

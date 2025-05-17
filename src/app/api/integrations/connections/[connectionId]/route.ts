@@ -7,10 +7,10 @@ import { mockNango } from '@/lib/mock-service-provider';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { connectionId: string } }
+  { params }: { params: Promise<{ connectionId: string }> }
 ) {
   try {
-    const { connectionId } = params;
+    const { connectionId } = await params;
 
     if (!connectionId) {
       return NextResponse.json(
@@ -79,10 +79,10 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { connectionId: string } }
+  { params }: { params: Promise<{ connectionId: string }> }
 ) {
   try {
-    const { connectionId } = params;
+    const { connectionId } = await params;
 
     if (!connectionId) {
       return NextResponse.json(

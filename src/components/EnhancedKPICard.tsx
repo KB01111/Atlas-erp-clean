@@ -4,9 +4,8 @@ import { useEffect } from "react";
 import { useCopilotReadable } from "@copilotkit/react-core";
 import { LucideIcon } from "lucide-react";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { MagicCard } from "@/components/magicui/magic-card";
-import { NumberTicker } from "@/components/magicui/number-ticker";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { NumberDisplay } from "@/components/ui/number-display";
 
 interface EnhancedKPICardProps {
   title: string;
@@ -98,17 +97,15 @@ export default function EnhancedKPICard({
 
   return (
     <div className="relative group transition-all duration-300 hover:scale-[1.02]">
-      <MagicCard
-        className="rounded-xl overflow-hidden"
-        focus
-        glare
-        glareSize={0.4}
-        glareOpacity={0.2}
-        glarePosition="all"
-        glareColor={colorScheme.iconColor}
-        glareBorderRadius="0.75rem"
+      <EnhancedCard
+        className="overflow-hidden"
+        gradient
+        interactive
+        hoverEffect="glow"
+        gradientFrom={colorScheme.borderColor}
+        gradientTo={colorScheme.shineBorderColor}
       >
-        <div className="bg-card rounded-xl shadow-sm p-6">
+        <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className={`${colorScheme.iconBg} p-3 rounded-full`}>
               <Icon className={`${colorScheme.iconColor}`} size={24} />
@@ -121,7 +118,7 @@ export default function EnhancedKPICard({
           <div className="space-y-1">
             <h3 className="text-card-foreground/70 text-sm font-medium">{title}</h3>
             <div className="text-2xl font-bold">
-              <NumberTicker
+              <NumberDisplay
                 value={value}
                 className="text-2xl font-bold"
                 style={{
@@ -134,7 +131,7 @@ export default function EnhancedKPICard({
             </div>
           </div>
         </div>
-      </MagicCard>
+      </EnhancedCard>
     </div>
   );
 }

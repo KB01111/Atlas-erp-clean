@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
+import { BorderContainer } from "@/components/ui/shine-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import { EnhancedActionButton } from "@/components/ui/enhanced-action-button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -539,12 +539,12 @@ export default function PipedreamWorkflowBuilder({
                 placeholder="Workflow Description"
               />
               <div className="flex gap-2">
-                <ShimmerButton
+                <EnhancedActionButton
                   onClick={updateWorkflowDetails}
                   className="px-3 py-1 text-sm bg-indigo-600 text-white rounded-md"
-                >
+                 variant="default" size="sm" hover="lift">
                   Save Details
-                </ShimmerButton>
+                </EnhancedActionButton>
                 <button
                   onClick={() => setIsEditingWorkflowDetails(false)}
                   className="px-3 py-1 text-sm text-slate-600 bg-slate-100 rounded-md"
@@ -575,8 +575,8 @@ export default function PipedreamWorkflowBuilder({
           <div className="flex gap-2">
             {!readOnly && (
               <>
-                <ShimmerButton
-                  onClick={() => setShowStepLibrary(!showStepLibrary)}
+                <EnhancedActionButton
+                  onClick={() = variant="default" size="sm" hover="lift"> setShowStepLibrary(!showStepLibrary)}
                   className={`px-3 py-2 text-sm ${
                     showStepLibrary
                       ? 'bg-indigo-100 text-indigo-700 border border-indigo-300'
@@ -585,28 +585,28 @@ export default function PipedreamWorkflowBuilder({
                 >
                   <Plus size={16} />
                   <span>Add Step</span>
-                </ShimmerButton>
+                </EnhancedActionButton>
 
-                <ShimmerButton
+                <EnhancedActionButton
                   onClick={saveWorkflow}
                   disabled={isLoading}
                   className="px-3 py-2 text-sm bg-green-600 text-white rounded-md flex items-center gap-1"
-                >
+                 variant="default" size="sm" hover="lift">
                   <Save size={16} />
                   <span>Save</span>
-                </ShimmerButton>
+                </EnhancedActionButton>
               </>
             )}
 
             {onRun && (
-              <ShimmerButton
+              <EnhancedActionButton
                 onClick={runWorkflow}
                 disabled={isLoading || workflow.steps.length === 0}
                 className="px-3 py-2 text-sm bg-blue-600 text-white rounded-md flex items-center gap-1"
-              >
+               variant="default" size="sm" hover="lift">
                 <Play size={16} />
                 <span>Run</span>
-              </ShimmerButton>
+              </EnhancedActionButton>
             )}
 
             <Tooltip content="Export Workflow">
@@ -675,8 +675,8 @@ export default function PipedreamWorkflowBuilder({
 
       {/* Main workflow canvas */}
       <div className="flex-1 relative">
-        <MagicCard className="h-full overflow-hidden">
-          <ShineBorder borderRadius="0.75rem" className="p-0.5 h-full">
+        <EnhancedCard className="h-full overflow-hidden" interactive hoverEffect="shadow">
+          <BorderContainer borderRadius="0.75rem" className="p-0.5 h-full" variant="primary" rounded="xl">
             <div
               ref={containerRef}
               className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden h-full relative p-4"
@@ -875,15 +875,15 @@ export default function PipedreamWorkflowBuilder({
                 </>
               )}
             </div>
-          </ShineBorder>
-        </MagicCard>
+          </BorderContainer>
+        </EnhancedCard>
       </div>
 
       {/* Step configuration panel */}
       {selectedStep && !readOnly && (
         <div className="mt-4">
-          <MagicCard className="overflow-hidden">
-            <ShineBorder borderRadius="0.75rem" className="p-0.5">
+          <EnhancedCard className="overflow-hidden" interactive hoverEffect="shadow">
+            <BorderContainer borderRadius="0.75rem" className="p-0.5" variant="primary" rounded="xl">
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden p-4">
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center gap-2">
@@ -946,8 +946,8 @@ export default function PipedreamWorkflowBuilder({
                   ))}
                 </div>
               </div>
-            </ShineBorder>
-          </MagicCard>
+            </BorderContainer>
+          </EnhancedCard>
         </div>
       )}
     </div>
